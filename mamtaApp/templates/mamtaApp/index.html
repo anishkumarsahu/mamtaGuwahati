@@ -57,6 +57,38 @@
 .theme-red .navbar {
     background-color: #1b1c1d;
 }
+.btn{
+    border-radius: 8px!important;
+     -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -ms-border-radius: 8px;
+}
+.btn:not(.btn-link):not(.btn-circle) i {
+    font-size: 12px!important;
+}
+.dataTables_wrapper .dt-buttons a.dt-button {
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -ms-border-radius: 8px;
+    border-radius: 8px;
+
+}
+.info-box {
+ -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -ms-border-radius: 8px;
+    border-radius: 8px;
+}
+.pagination li.active a {
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -ms-border-radius: 8px;
+    border-radius: 8px;
+}
+.form-group .form-control {
+
+   padding: 6px 12px !important;
+}
     </style>
 </head>
 
@@ -100,7 +132,10 @@
     <aside id="leftsidebar" class="sidebar">
         <div class="menu">
             <ul class="list" id="navUL">
-                <li class="header">MAIN NAVIGATION</li>
+                <li class="header">
+                    <a href="#">
+                        MAIN NAVIGATION
+                    </a></li>
 
                 {% if request.user|has_group:"Both" %}
 
@@ -297,12 +332,12 @@
         </div>
         <div class="legal">
             <div class="copyright">
-                &copy; 2022 - 2023 <a target="_blank" href="https://zivainfotech.com">Designed & Developed By <br>Ziva
+                &copy; 2023 - 2024 <a target="_blank" href="https://zivainfotech.com">Designed & Developed By <br>Ziva
                 Infotech
             </a>.
             </div>
             <div class="version">
-                <b>Version: </b> 3.0.1
+                <b>Version: </b> 3.1.1
             </div>
         </div>
     </aside>
