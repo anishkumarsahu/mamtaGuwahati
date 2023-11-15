@@ -1,11 +1,11 @@
-{% load staticfiles %}
+{% load static %}
 {% load pwa %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport">
-    <title>DEMO</title>
+    <title>A123DACN</title>
     <link rel="icon" href="{% static 'images/fevicon.png' %}" type="image/x-icon">
     {% progressive_web_app_meta %}
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
@@ -131,10 +131,33 @@
     margin-right: 0;
     margin-left: 0;
 }
+    .bootstrap-select .dropdown-menu li a {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    height: 30px!important;
+}
+    .bootstrap-select .dropdown-menu li a:hover    {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    height: 30px!important;
+        background-color: lightblue;
+}
+    .bootstrap-select .dropdown-menu {
+    max-width: 100%!important;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
 </style>
 <div id="nonPrintDiv">
     <div class="col-md-12">
-        <h4>DEMO</h4>
+        <h4>A123DACN</h4>
         {% if user == 'Admin' %}
             <ul style="    position: fixed;top: 7px;right: 2%; width: 10%;" class="nav">
 

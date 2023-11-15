@@ -1,4 +1,4 @@
-﻿{% load staticfiles %}
+﻿{% load static %}
 {% load pwa %}
 <!DOCTYPE html>
 <html lang="en">
@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <meta content="width=device-width,initial-scale=1" name="viewport">
     {% progressive_web_app_meta %}
-    <title>DEMO</title>
+    <title>A123DACN</title>
     <link rel="icon" href="{% static 'images/fevicon.png' %}" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet"
           type="text/css">
@@ -123,7 +123,7 @@
     <div class="container-fluid">
         <div class="navbar-header">
             <a href="javascript:void(0);" class="bars"></a>
-            <a class="navbar-brand" href="/" style="cursor: pointer">DEMO</a>
+            <a class="navbar-brand" href="/" style="cursor: pointer">A123DACN</a>
         </div>
 
     </div>
@@ -161,6 +161,7 @@
                             <span>Manage Staffs</span>
                         </a>
                     </li>
+{% comment %}
 
                     <li
                             {% if request.session.nav == 'atten1' or request.session.nav == 'atten2' or request.session.nav == 'atten3' %}
@@ -190,6 +191,7 @@
                         </ul>
 
                     </li>
+{% endcomment %}
 
 
                     <li

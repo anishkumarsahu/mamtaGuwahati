@@ -1,5 +1,5 @@
 {% extends 'mamtaApp/index.html' %}
-{% load staticfiles %}
+{% load static %}
 {% block body %}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <link href="{% static 'date/bootstrap-datepicker.css' %}" rel="stylesheet">
@@ -80,6 +80,21 @@
         .select2-drop-active {
             margin-top: -25px !important;
         }
+            .bootstrap-select .dropdown-menu li a:hover    {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    height: 30px!important;
+        background-color: lightblue;
+}
+    .bootstrap-select .dropdown-menu {
+    max-width: 100%!important;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
     </style>
 
     <section class="content">

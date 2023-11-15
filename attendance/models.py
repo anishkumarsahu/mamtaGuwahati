@@ -10,7 +10,7 @@ class LoginSystem(models.Model):
     location = models.CharField(max_length=200, blank=True, null=True)
     username = models.CharField(max_length=100, blank=True, null=True)
     password = models.CharField(max_length=100, blank=True, null=True)
-    userID = models.ForeignKey(User, blank=True, null=True)
+    userID = models.ForeignKey(User, blank=True, null=True,on_delete=models.CASCADE)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
@@ -38,7 +38,7 @@ class Employee(models.Model):
 
 
 class EmployeeAttendance(models.Model):
-    employeeID = models.ForeignKey(Employee, blank=True, null=True)
+    employeeID = models.ForeignKey(Employee, blank=True, null=True,on_delete=models.CASCADE)
     attendanceDate = models.DateField(null=True)
     loginTime = models.TimeField(null=True)
     loginRemark = models.CharField(max_length=500, blank=True, null=True)
@@ -54,8 +54,8 @@ class EmployeeAttendance(models.Model):
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
 
-    loginSystemID = models.ForeignKey(User, blank=True, null=True, related_name='login')
-    logoutSystemID = models.ForeignKey(User, blank=True, null=True, related_name='logout')
+    loginSystemID = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE,related_name='login')
+    logoutSystemID = models.ForeignKey(User, blank=True, null=True,on_delete=models.CASCADE, related_name='logout')
 
     def __str__(self):
         return self.employeeID.name

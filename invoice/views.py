@@ -1,15 +1,12 @@
 from django.contrib import messages
 from django.db.models import Q, FloatField, IntegerField
-from django.db.models.functions import Cast
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
-from django.template.defaulttags import csrf_token
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from weasyprint import HTML, CSS
-
 from mamtaApp.views import check_group
 from .models import *
 # Create your views here.

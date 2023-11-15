@@ -7,11 +7,11 @@ from mamtaApp.models import *
 
 class InvoiceSeries(models.Model):
     series = models.CharField(max_length=100, blank=True, null=True)
-    assignedTo = models.ForeignKey(StaffUser, blank=True, null=True)
+    assignedTo = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     startsWith = models.CharField(default='00001', max_length=100)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
-    companyID = models.ForeignKey(Company, blank=True, null=True)
+    companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
     isCompleted = models.BooleanField(default=False)
 
@@ -31,12 +31,12 @@ class InvoiceSerial(models.Model):
 
 
 class Sales(models.Model):
-    InvoiceSeriesID = models.ForeignKey(InvoiceSeries, blank=True, null=True)
+    InvoiceSeriesID = models.ForeignKey(InvoiceSeries, blank=True, null=True,on_delete=models.CASCADE)
     billNumber = models.CharField(max_length=100, blank=True, null=True)
     actualBillNumber = models.CharField(max_length=100, blank=True, null=True)
     numberMain = models.IntegerField(default=1)
     salesType = models.CharField(max_length=100, blank=True, null=True)
-    createdBy = models.ForeignKey(StaffUser, blank=True, null=True)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     amount = models.FloatField(default=0.0)
     mixCardAmount = models.FloatField(default=0.0)
     isCash = models.BooleanField(default=True)
@@ -52,8 +52,8 @@ class Sales(models.Model):
 
 
 class CollectionOnSale(models.Model):
-    companyID = models.ForeignKey(Company, blank=True, null=True)
-    createdBy = models.ForeignKey(StaffUser, blank=True, null=True)
+    companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     amount = models.FloatField(default=0.0)
     customerName = models.CharField(max_length=200, blank=True, null=True)
     isDeleted = models.BooleanField(default=False)
@@ -67,9 +67,9 @@ class CollectionOnSale(models.Model):
 class ReturnCollection(models.Model):
     actualBillNumber = models.CharField(max_length=100, blank=True, null=True)
     numberMain = models.IntegerField(default=1)
-    createdBy = models.ForeignKey(StaffUser, blank=True, null=True)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     amount = models.FloatField(default=0.0)
-    companyID = models.ForeignKey(Company, blank=True, null=True)
+    companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
@@ -81,9 +81,9 @@ class ReturnCollection(models.Model):
 class Commission(models.Model):
     actualBillNumber = models.CharField(max_length=100, blank=True, null=True)
     numberMain = models.IntegerField(default=1)
-    createdBy = models.ForeignKey(StaffUser, blank=True, null=True)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     amount = models.FloatField(default=0.0)
-    companyID = models.ForeignKey(Company, blank=True, null=True)
+    companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
@@ -96,9 +96,9 @@ class Commission(models.Model):
 class CorrectCollection(models.Model):
     actualBillNumber = models.CharField(max_length=100, blank=True, null=True)
     numberMain = models.IntegerField(default=1)
-    createdBy = models.ForeignKey(StaffUser, blank=True, null=True)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     amount = models.FloatField(default=0.0)
-    companyID = models.ForeignKey(Company, blank=True, null=True)
+    companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
@@ -109,9 +109,9 @@ class CorrectCollection(models.Model):
 
 class Expense(models.Model):
     remark = models.CharField(max_length=300, blank=True, null=True)
-    createdBy = models.ForeignKey(StaffUser, blank=True, null=True)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     amount = models.FloatField(default=0.0)
-    companyID = models.ForeignKey(Company, blank=True, null=True)
+    companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
@@ -126,15 +126,15 @@ class OpeningAndClosingBalance(models.Model):
     isBalanceCreditedOnNextDay = models.BooleanField(default=False)
     balanceDate = models.DateField(blank=True, null=True)
     balanceCreditDate = models.DateField(blank=True, null=True)
-    companyID = models.ForeignKey(Company, blank=True, null=True)
-    createdBy = models.ForeignKey(StaffUser, blank=True, null=True)
+    companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
+    createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
 
 
 class SalesEdit(models.Model):
-    salesID = models.ForeignKey(Sales, blank=True, null=True)
+    salesID = models.ForeignKey(Sales, blank=True, null=True,on_delete=models.CASCADE)
     amountBefore = models.FloatField(default=0.0)
     amountAfter = models.FloatField(default=0.0)
     remark = models.CharField(max_length=300, default='N/A')

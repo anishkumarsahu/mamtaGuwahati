@@ -1,11 +1,11 @@
-﻿{% load staticfiles %}
+﻿{% load static %}
 {% load pwa %}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <title>DEMO</title>
+    <title>A123DACN</title>
      {% progressive_web_app_meta %}
     <link rel="icon" href="{% static 'images/fevicon.png' %}" type="image/x-icon">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
@@ -36,6 +36,21 @@
             -ms-transition: opacity 3s ease-in-out;
             -o-transition: opacity 3s ease-in-out;
         }
+
+        .glass{
+            background: rgb(255, 255, 255);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(0.6px);
+            -webkit-backdrop-filter: blur(0.6px);
+            border: 1px solid rgba(255, 255, 255, 0.41);
+        }
+        .btn {
+            border-radius: 8px!important;
+     -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -ms-border-radius: 8px;
+        }
     </style>
 </head>
 
@@ -49,9 +64,9 @@
 <span id="name_status"></span>
 <div class="login-box">
     <div class="logo">
-        <a href="javascript:void(0);"><b>DEMO</b></a>
+        <a href="javascript:void(0);"><b>A123DACN</b></a>
     </div>
-    <div class="card">
+    <div class="card glass">
         <div class="body">
             <form id="sign_in" method="post">{% csrf_token %}
                 <div class="msg">Sign in to start your session</div>

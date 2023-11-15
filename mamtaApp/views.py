@@ -600,7 +600,7 @@ class StaffListJson(BaseDatatableView):
                 company = item.companyID.name
             json_data.append([
                 escape(i),
-                '''<img class="imageTable zoom" src="{}" alt="">'''.format(item.photo.url),
+                '''<img class="imageTable zoom" src="{}" alt="">'''.format(item.photo.thumbnail.url),
                 escape(item.name),  # escape HTML for security reasons
                 escape(item.phoneNumber),  # escape HTML for security reasons
                 company,

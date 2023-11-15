@@ -1,98 +1,98 @@
 
-from django.conf.urls import url
+from django.urls import re_path, path
 from .views import *
 
 
 
 urlpatterns = [
     # buyer
-    url(r'^InvoicePrintListJson/$', InvoicePrintListJson.as_view(), name='InvoicePrintListJson'),
-    url(r'^LoginListJson/$', LoginListJson.as_view(), name='LoginListJson'),
-    url(r'^LogoutListJson/$', LogoutListJson.as_view(), name='LogoutListJson'),
-    url(r'^buyerList/$', BuyerListJson.as_view(), name='BuyerListJson'),
-    url(r'^ManageCreditListJson/$', ManageCreditListJson.as_view(), name='ManageCreditListJson'),
-    url(r'^CreditListJson/$', CreditListJson.as_view(), name='CreditListJson'),
-    url(r'^DebitListJson/$', DebitListJson.as_view(), name='DebitListJson'),
-    url(r'^CollectionListCashJson/$', CollectionListCashJson.as_view(), name='CollectionListCashJson'),
-    url(r'^CollectionListChequeJson/$', CollectionListChequeJson.as_view(), name='CollectionListChequeJson'),
-    url(r'^ManageCompanyListJson/$', ManageCompanyListJson.as_view(), name='ManageCompanyListJson'),
-    url(r'^StaffListJson/$', StaffListJson.as_view(), name='StaffListJson'),
-    url(r'^SupplierCollectionListJson/$', SupplierCollectionListJson.as_view(), name='SupplierCollectionListJson'),
-    url(r'^SupplierInvoiceCollectionListJson/$', SupplierInvoiceCollectionListJson.as_view(), name='SupplierInvoiceCollectionListJson'),
-    url(r'^SupplierCollectionListCashJson/$', SupplierCollectionListCashJson.as_view(), name='SupplierCollectionListCashJson'),
-    url(r'^SupplierCollectionAdminListCashJson/$', SupplierCollectionAdminListCashJson.as_view(), name='SupplierCollectionAdminListCashJson'),
-    url(r'^SupplierCollectionListChequeJson/$', SupplierCollectionListChequeJson.as_view(), name='SupplierCollectionListChequeJson'),
-    url(r'^SupplierCollectionAdminListChequeJson/$', SupplierCollectionAdminListChequeJson.as_view(), name='SupplierCollectionAdminListChequeJson'),
+    re_path(r'^InvoicePrintListJson/$', InvoicePrintListJson.as_view(), name='InvoicePrintListJson'),
+    re_path(r'^LoginListJson/$', LoginListJson.as_view(), name='LoginListJson'),
+    re_path(r'^LogoutListJson/$', LogoutListJson.as_view(), name='LogoutListJson'),
+    re_path(r'^buyerList/$', BuyerListJson.as_view(), name='BuyerListJson'),
+    re_path(r'^ManageCreditListJson/$', ManageCreditListJson.as_view(), name='ManageCreditListJson'),
+    re_path(r'^CreditListJson/$', CreditListJson.as_view(), name='CreditListJson'),
+    re_path(r'^DebitListJson/$', DebitListJson.as_view(), name='DebitListJson'),
+    re_path(r'^CollectionListCashJson/$', CollectionListCashJson.as_view(), name='CollectionListCashJson'),
+    re_path(r'^CollectionListChequeJson/$', CollectionListChequeJson.as_view(), name='CollectionListChequeJson'),
+    re_path(r'^ManageCompanyListJson/$', ManageCompanyListJson.as_view(), name='ManageCompanyListJson'),
+    re_path(r'^StaffListJson/$', StaffListJson.as_view(), name='StaffListJson'),
+    re_path(r'^SupplierCollectionListJson/$', SupplierCollectionListJson.as_view(), name='SupplierCollectionListJson'),
+    re_path(r'^SupplierInvoiceCollectionListJson/$', SupplierInvoiceCollectionListJson.as_view(), name='SupplierInvoiceCollectionListJson'),
+    re_path(r'^SupplierCollectionListCashJson/$', SupplierCollectionListCashJson.as_view(), name='SupplierCollectionListCashJson'),
+    re_path(r'^SupplierCollectionAdminListCashJson/$', SupplierCollectionAdminListCashJson.as_view(), name='SupplierCollectionAdminListCashJson'),
+    re_path(r'^SupplierCollectionListChequeJson/$', SupplierCollectionListChequeJson.as_view(), name='SupplierCollectionListChequeJson'),
+    re_path(r'^SupplierCollectionAdminListChequeJson/$', SupplierCollectionAdminListChequeJson.as_view(), name='SupplierCollectionAdminListChequeJson'),
 
-    url(r'^$', home, name='home'),
+    re_path(r'^$', home, name='home'),
     # staff
-    url(r'^staff/$', staff, name='staff'),
-    url(r'^staff/add/$', add_staff, name='add_staff'),
-    url(r'^staff/detail/(?P<id>\d+)/$', detail_staff, name='detail_staff'),
-    url(r'^staff/edit/(?P<id>\d+)/$', edit_staff, name='edit_staff'),
+    re_path(r'^staff/$', staff, name='staff'),
+    re_path(r'^staff/add/$', add_staff, name='add_staff'),
+    re_path(r'^staff/detail/(?P<id>\d+)/$', detail_staff, name='detail_staff'),
+    re_path(r'^staff/edit/(?P<id>\d+)/$', edit_staff, name='edit_staff'),
 
     # staff api
-    url(r'^staff/add/api/$', add_staff_user_api, name='add_staff_user_api'),
-    url(r'^staff/edit/api/$', edit_staff_user_api, name='edit_staff_user_api'),
-    url(r'^staff/photo_edit/api/$', edit_staff_photo_api, name='edit_staff_photo_api'),
-    url(r'^staff/idproof_edit/api/$', edit_staff_idproof_api, name='edit_staff_idproof_api'),
-    url(r'^staff/delete/api/$', delete_staff_user_api, name='delete_staff_user_api'),
+    re_path(r'^staff/add/api/$', add_staff_user_api, name='add_staff_user_api'),
+    re_path(r'^staff/edit/api/$', edit_staff_user_api, name='edit_staff_user_api'),
+    re_path(r'^staff/photo_edit/api/$', edit_staff_photo_api, name='edit_staff_photo_api'),
+    re_path(r'^staff/idproof_edit/api/$', edit_staff_idproof_api, name='edit_staff_idproof_api'),
+    re_path(r'^staff/delete/api/$', delete_staff_user_api, name='delete_staff_user_api'),
 
     # buyers
-    url(r'^buyers/$', buyers, name='buyers'),
-    url(r'^buyers/add/$', add_buyer, name='add_buyer'),
-    url(r'^buyers/detail/(?P<id>\d+)/$', detail_buyer, name='detail_buyer'),
-    url(r'^buyers/edit/(?P<id>\d+)/$', edit_buyer, name='edit_buyer'),
+    re_path(r'^buyers/$', buyers, name='buyers'),
+    re_path(r'^buyers/add/$', add_buyer, name='add_buyer'),
+    re_path(r'^buyers/detail/(?P<id>\d+)/$', detail_buyer, name='detail_buyer'),
+    re_path(r'^buyers/edit/(?P<id>\d+)/$', edit_buyer, name='edit_buyer'),
 
     # buyers api
-    url(r'^buyers/add/api/$', add_buyer_api, name='add_buyer_api'),
-    url(r'^buyers/edit/api/$', edit_buyer_api, name='edit_buyer_api'),
-    url(r'^buyers/delete/api/$', delete_buyer_api, name='delete_buyer_api'),
+    re_path(r'^buyers/add/api/$', add_buyer_api, name='add_buyer_api'),
+    re_path(r'^buyers/edit/api/$', edit_buyer_api, name='edit_buyer_api'),
+    re_path(r'^buyers/delete/api/$', delete_buyer_api, name='delete_buyer_api'),
 
     # credits
-    url(r'^buyers/credit/add/api/$', add_money_to_be_collected_api, name='add_money_to_be_collected_api'),
+    re_path(r'^buyers/credit/add/api/$', add_money_to_be_collected_api, name='add_money_to_be_collected_api'),
 
     # report
-    url(r'^report/$', report, name='report'),
+    re_path(r'^report/$', report, name='report'),
     # report
-    url(r'^manage_credits/$', manage_credits, name='manage_credits'),
+    re_path(r'^manage_credits/$', manage_credits, name='manage_credits'),
 
     # login
-    url(r'^login/$', loginApp, name='loginApp'),
+    re_path(r'^login/$', loginApp, name='loginApp'),
 
     # logout
-    url(r'^Logout/$', logout_user, name='logout'),
+    re_path(r'^Logout/$', logout_user, name='logout'),
 
     # profile
-    url(r'^profile/$', profile, name='profile'),
-    url(r'^change_password/$', change_password_api, name='change_password_api'),
+    re_path(r'^profile/$', profile, name='profile'),
+    re_path(r'^change_password/$', change_password_api, name='change_password_api'),
 
 
-    url(r'^manage_company/$', manage_company, name='manage_company'),
-    url(r'^add_company_api/$', add_company_api, name='add_company_api'),
-    url(r'^edit_company_api/$', edit_company_api, name='edit_company_api'),
+    re_path(r'^manage_company/$', manage_company, name='manage_company'),
+    re_path(r'^add_company_api/$', add_company_api, name='add_company_api'),
+    re_path(r'^edit_company_api/$', edit_company_api, name='edit_company_api'),
 
 
     #supply
-    url(r'^supplyHome/$', supply_home, name='supply_home'),
-    url(r'^supplier_collection_report/$', supplier_collection_report, name='supplier_collection_report'),
-    url(r'^take_collection_supplier_api/$', take_collection_supplier_api, name='take_collection_supplier_api'),
-    url(r'^take_collection_invoice_supplier_api/$', take_collection_invoice_supplier_api, name='take_collection_invoice_supplier_api'),
-    url(r'^edit_collection_supplier_api/$', edit_collection_supplier_api, name='edit_collection_supplier_api'),
-    url(r'^approve_collection_supplier_api/$', approve_collection_supplier_api, name='approve_collection_supplier_api'),
-    url(r'^delete_collection_supplier_api/$', delete_collection_supplier_api, name='delete_collection_supplier_api'),
+    re_path(r'^supplyHome/$', supply_home, name='supply_home'),
+    re_path(r'^supplier_collection_report/$', supplier_collection_report, name='supplier_collection_report'),
+    re_path(r'^take_collection_supplier_api/$', take_collection_supplier_api, name='take_collection_supplier_api'),
+    re_path(r'^take_collection_invoice_supplier_api/$', take_collection_invoice_supplier_api, name='take_collection_invoice_supplier_api'),
+    re_path(r'^edit_collection_supplier_api/$', edit_collection_supplier_api, name='edit_collection_supplier_api'),
+    re_path(r'^approve_collection_supplier_api/$', approve_collection_supplier_api, name='approve_collection_supplier_api'),
+    re_path(r'^delete_collection_supplier_api/$', delete_collection_supplier_api, name='delete_collection_supplier_api'),
 
     # username exist?
-    url(r'^user_name_exist/$', user_name_exist, name='user_name_exist'),
+    re_path(r'^user_name_exist/$', user_name_exist, name='user_name_exist'),
 
     # login logout report
-    url(r'^login_and_logout_report/$', login_and_logout_report, name='login_and_logout_report'),
+    re_path(r'^login_and_logout_report/$', login_and_logout_report, name='login_and_logout_report'),
 
     #cashier
-    url(r'^cashierHome/$', cashier_home, name='cashier_home'),
+    re_path(r'^cashierHome/$', cashier_home, name='cashier_home'),
 
     #print Report
-    url(r'^print_report/$', print_report, name='print_report'),
-    url(r'^EditedCashInvoiceAdminListJson/$', EditedCashInvoiceAdminListJson.as_view(), name='EditedCashInvoiceAdminListJson'),
+    re_path(r'^print_report/$', print_report, name='print_report'),
+    re_path(r'^EditedCashInvoiceAdminListJson/$', EditedCashInvoiceAdminListJson.as_view(), name='EditedCashInvoiceAdminListJson'),
 
 ]
