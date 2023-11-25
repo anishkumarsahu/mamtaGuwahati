@@ -84,7 +84,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mamtaguwahati',
-        'HOST': '127.0.0.1',
+        'HOST': 'localhost',
         'PORT': '3306',
         'USER': 'root',
         'PASSWORD': 'pass',
@@ -180,3 +180,8 @@ PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'mamtaApp', '../static/sw/sw.js
 SESSION_COOKIE_AGE = 30*60
 SESSION_SAVE_EVERY_REQUEST = True
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://a123dacn.in',
+    'http://www.a123dacn.in'
+]

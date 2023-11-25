@@ -975,7 +975,7 @@ def staff(request):
 
 @check_group('Both')
 def add_staff(request):
-    staffType = StaffType.objects.all()
+    staffType = StaffType.objects.filter(isDeleted__exact=False)
     company = Company.objects.filter(isDeleted__exact=False)
     context = {
         'types':staffType,
@@ -996,7 +996,7 @@ def detail_staff(request, id=None):
 @check_group('Both')
 def edit_staff(request, id=None):
     instance = get_object_or_404(StaffUser, pk=id)
-    staffType = StaffType.objects.all()
+    staffType = StaffType.objects.filter(isDeleted__exact=False)
     company = Company.objects.filter(isDeleted__exact=False)
 
     context = {
