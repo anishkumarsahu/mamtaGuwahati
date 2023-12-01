@@ -1072,8 +1072,8 @@ def edit_invoice(request):
         SalesType = request.POST.get('salesE')
         Amount = request.POST.get('amountE')
         CustomerName = request.POST.get('customerE')
-        invoice_series = BillNumber[:-4]
-        MainNumber = BillNumber[-4:]
+        invoice_series = BillNumber[:-5]
+        MainNumber = BillNumber[-5:]
 
         try:
             isExist = InvoiceSeries.objects.get(series__exact=invoice_series, isDeleted__exact=False)
