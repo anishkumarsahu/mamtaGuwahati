@@ -15,6 +15,9 @@
             columns: 3;
         }
 
+        #card {
+            columns: 2;
+        }
         #Credit {
             columns: 2;
         }
@@ -37,15 +40,17 @@
 <div class="container">
     <div class="row">
         <span style="font-size: 10px;">Date: {{ date }}</span>
-        <span style="font-size: 9px;float: right">DEMO Sales Report-({{ company }})</span>
+        <span style="font-size: 9px;float: right"> Sales Report-({{ company }})</span>
     </div>
+
     <p style="font-size: 10px; margin: 2px;">Cash</p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
             <tr>
                 <th scope="col">Bill_No.</th>
-                <th scope="col">Amount(₹)</th>
+                <th scope="col">Amt(₹)</th>
+                 <th scope="col">E-Time</th>
             </tr>
             </thead>
             <tbody>
@@ -53,19 +58,21 @@
                 <tr>
                     <td>{{ foo.billNumber }}</td>
                     <td>{{ foo.amount }}</td>
+                    <td>{{ foo.datetime|time:"h:i a" }}</td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </section>
     <p style="font-size: 10px; margin: 2px;">Card</p>
-    <section>
+    <section id="card">
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
             <tr>
                 <th scope="col">Bill_No.</th>
                 <th scope="col">Amount(₹)</th>
                 <th scope="col">Remark(₹)</th>
+                 <th scope="col">E-Time</th>
             </tr>
             </thead>
             <tbody>
@@ -74,6 +81,7 @@
                     <td>{{ foo.billNumber }}</td>
                     <td>{{ foo.amount }}</td>
                     <td>{{ foo.remark }}</td>
+                <td>{{ foo.datetime|time:"h:i a" }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -96,21 +104,22 @@
                     <td>{{ foo.billNumber }}</td>
                     <td>{{ foo.challanNumber }}</td>
                     <td>{{ foo.amount }}</td>
-                    <td>{{ foo.customerName|truncatechars:20 }}</td>
+                    <td>{{ foo.customerName|truncatechars:15 }}</td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Mix</p>
+    <p style="font-size: 10px; margin: 2px;">Mix </p>
     <section id="Mix">
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
             <tr>
                 <th scope="col">Bill_No.</th>
-                <th scope="col">CashAmount(₹).</th>
-                <th scope="col">CardAmount(₹)</th>
+                <th scope="col">CashAmt.(₹)</th>
+                <th scope="col">CardAmt.(₹)</th>
                 <th scope="col">Card Remark</th>
+                 <th scope="col">E-Time</th>
             </tr>
             </thead>
             <tbody>
@@ -120,6 +129,7 @@
                     <td>{{ foo.amount }}</td>
                     <td>{{ foo.mixCardAmount }}</td>
                     <td>{{ foo.remark }}</td>
+                <td>{{ foo.datetime|time:"h:i a" }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -163,13 +173,14 @@
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Commission</p>
+    <p style="font-size: 10px; margin: 2px;">Commission </p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
             <tr>
                 <th scope="col">InvoiceNo.</th>
                 <th scope="col">Amount(₹)</th>
+
             </tr>
             </thead>
             <tbody>
@@ -179,11 +190,10 @@
                     <td>-{{ foo.amount }}</td>
                 </tr>
             {% endfor %}
-
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Expenses </p>
+    <p style="font-size: 10px; margin: 2px;">Expenses</p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -199,6 +209,7 @@
                     <td>{{ foo.amount }}</td>
                 </tr>
             {% endfor %}
+
             </tbody>
         </table>
     </section>

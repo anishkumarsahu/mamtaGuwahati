@@ -1655,7 +1655,7 @@ def generate_net_report_accountant(request):
     sales_card = Sales.objects.filter(datetime__icontains=day_string,
                                       salesType__icontains='card',isDeleted__exact=False,
                                       InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
-    sales_credit = Sales.objects.filter(datetime__icontains=day_string,
+    sales_credit = Sales.objects.filter(datetime__icontains=day_string, salesType__icontains='credit',
                                         InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
     sales_mix = Sales.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
                                      salesType__icontains='Mix',
