@@ -1462,6 +1462,7 @@
             }
 
             if (billType === 'Collection') {
+                   debugger;
                 var partyName = $('#partyName1').val();
                 var partyAmount = $('#partyAmount1').val();
                 var collectionremark = $('#collectionremark').val();
@@ -1471,7 +1472,7 @@
                 data.append('collectionremark', collectionremark);
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
 
-                if (partyName === "" || partyAmount === "") {
+                if (partyName === "" ||partyName === null || partyAmount === "") {
                     $('#name_status').addClass('validate_data');
                     $('#name_status').html('* fields are required.').fadeIn().fadeOut(2000);
 
@@ -1488,10 +1489,18 @@
 
 
                         success: function (response) {
+                            console.log(response)
                             if (response.message === 'success') {
+
                                 $('#name_status').addClass('validate_data');
                                 $('#name_status').html('New Collection Created.').fadeIn().fadeOut(2000);
                                 $('#SalesForm')[0].reset();
+                                $('#p1').html(response.data['createdBy']);
+                                $('#p2').html(response.data['amount']);
+                                $('#p3').html(response.data['billNo']);
+                                $('#p4').html(response.data['datetime']);
+                                $('#p5').html(response.data['ModeOfPayment']);
+                                 window.print();
 
 
                             }
@@ -1537,6 +1546,14 @@
                                 $('#name_status').addClass('validate_data');
                                 $('#name_status').html('New CC Created.').fadeIn().fadeOut(2000);
                                 $('#SalesForm')[0].reset();
+                                   $('#SalesForm')[0].reset();
+                                $('#p1').html(response.data['createdBy']);
+                                $('#p2').html(response.data['amount']);
+                                $('#p3').html(response.data['billNo']);
+                                $('#p4').html(response.data['datetime']);
+                                $('#p5').html(response.data['ModeOfPayment']);
+                                 window.print();
+
 
 
                             }

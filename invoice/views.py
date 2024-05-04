@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.db.models import Q, FloatField, IntegerField
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
@@ -1651,15 +1653,19 @@ def generate_net_report_accountant(request):
     date = datetime.today().date()
     sales_cash = Sales.objects.filter(datetime__icontains=day_string,
                                       salesType__icontains='cash',isDeleted__exact=False,
-                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
+                                                 'numberMain')
     sales_card = Sales.objects.filter(datetime__icontains=day_string,
                                       salesType__icontains='card',isDeleted__exact=False,
-                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
+                                                 'numberMain')
     sales_credit = Sales.objects.filter(datetime__icontains=day_string, salesType__icontains='credit',
-                                        InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                        InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
+                                                 'numberMain')
     sales_mix = Sales.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
                                      salesType__icontains='Mix',
-                                     InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                     InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
+                                                 'numberMain')
 
     company = Company.objects.get(pk=int(companyID))
     invoiceByUser = InvoiceSeries.objects.filter(companyID_id=company.pk, isCompleted__exact=False,
@@ -2040,7 +2046,18 @@ def take_collection(request):
             buy.closingBalance = buy.closingBalance - float(partyAmount)
             buy.save()
             enable_opening_balance(request)
-            return JsonResponse({'message': 'success'})
+            try:
+                by = collection.collectedBy.name
+            except:
+                by = 'Admin'
+            data = {
+                'createdBy': by,
+                'billNo': 'N/A',
+                'amount': collection.amount,
+                'datetime': collection.datetime.strftime('%d-%m-%Y %I:%M %p'),
+                'ModeOfPayment': collection.buyerID.name + ' (Collection)'
+            }
+            return JsonResponse({'message': 'success','data': data}, safe=False)
 
         except:
             return JsonResponse({'message': 'fail'})
@@ -2070,7 +2087,19 @@ def take_cash_collection(request):
             buy.closingBalance = buy.closingBalance - float(partyAmount)
             buy.save()
             enable_opening_balance(request)
-            return JsonResponse({'message': 'success'})
+            try:
+                by = collection.collectedBy.name
+            except:
+                by = 'Admin'
+            data = {
+                'createdBy': by,
+                'billNo': 'N/A',
+                'amount': collection.amount,
+                'datetime': collection.datetime.strftime('%d-%m-%Y %I:%M %p'),
+                'ModeOfPayment': collection.buyerID.name + ' (CC)'
+            }
+            return JsonResponse({'message': 'success', 'data': data}, safe=False)
+
 
         except:
             return JsonResponse({'message': 'fail'})
