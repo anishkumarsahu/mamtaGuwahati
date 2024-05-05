@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from weasyprint import HTML, CSS
 from mamtaApp.views import check_group
+from utils.utils import filter_by_company
 from .models import *
 # Create your views here.
 
@@ -110,7 +111,10 @@ class InvoiceSeriesListJson(BaseDatatableView):
 class InvoiceCreatedByCashListJson(BaseDatatableView):
     order_columns = ['id', 'billNumber', 'amount', 'salesType', 'InvoiceSeriesID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
+        company = kwargs.get('company')
+        print(company)
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
@@ -119,11 +123,11 @@ class InvoiceCreatedByCashListJson(BaseDatatableView):
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
         if staff == 'all':
             return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Cash', )
+                                        salesType__exact='Cash',InvoiceSeriesID__companyID__name__exact=company)
         else:
             return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
                                         salesType__exact='Cash',
-                                        createdBy=int(staff))
+                                        createdBy=int(staff),InvoiceSeriesID__companyID__name__exact=company)
 
     def filter_queryset(self, qs):
 
