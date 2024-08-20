@@ -183,5 +183,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 CSRF_TRUSTED_ORIGINS = [
     'https://a123dacn.in',
-    'http://www.a123dacn.in'
+    'https://www.a123dacn.in'
 ]

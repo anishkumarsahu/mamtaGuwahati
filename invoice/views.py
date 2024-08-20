@@ -18,6 +18,7 @@ from datetime import datetime, timedelta, date
 import calendar
 
 
+
 def enable_opening_balance(request):
     try:
         try:
@@ -113,21 +114,26 @@ class InvoiceCreatedByCashListJson(BaseDatatableView):
 
     @filter_by_company
     def get_initial_queryset(self, *args, **kwargs):
-        company = kwargs.get('company')
-        print(company)
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
+
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Cash',InvoiceSeriesID__companyID__name__exact=company)
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Cash',
-                                        createdBy=int(staff),InvoiceSeriesID__companyID__name__exact=company)
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Cash')
+
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -190,20 +196,34 @@ class InvoiceCreatedByCashListJson(BaseDatatableView):
 class InvoiceCreatedByCardListJson(BaseDatatableView):
     order_columns = ['id', 'billNumber', 'amount', 'salesType', 'InvoiceSeriesID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Card', )
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Card',
-                                        createdBy=int(staff))
+        # if staff == 'all':
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Card', )
+        # else:
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Card',
+        #                                 createdBy=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Card')
+
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -266,21 +286,32 @@ class InvoiceCreatedByCardListJson(BaseDatatableView):
 class InvoiceCreatedByMixListJson(BaseDatatableView):
     order_columns = ['id', 'billNumber', 'amount', 'mixCardAmount', 'salesType', 'InvoiceSeriesID', 'createdBy',
                      'datetime', 'action']
-
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Mix', )
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Mix',
-                                        createdBy=int(staff))
+        # if staff == 'all':
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Mix', )
+        # else:
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Mix',
+        #                                 createdBy=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Mix')
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -348,20 +379,32 @@ class InvoiceCreatedByCreditListJson(BaseDatatableView):
                      'createdBy',
                      'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Credit', )
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Credit',
-                                        createdBy=int(staff))
+        # if staff == 'all':
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Credit', )
+        # else:
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Credit',
+        #                                 createdBy=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Credit')
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -426,19 +469,31 @@ class InvoiceCreatedByCreditListJson(BaseDatatableView):
 class CollectionListJson(BaseDatatableView):
     order_columns = ['id', 'amount', 'buyerID.name', 'companyID', 'collectedBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        # if staff == 'all':
+        #     return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                           isAddedInSales__exact=True)
+        # else:
+        #     return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                           collectedBy_id=int(staff), isAddedInSales__exact=True)
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
                                                   isAddedInSales__exact=True)
-        else:
-            return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                                  collectedBy_id=int(staff), isAddedInSales__exact=True)
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(collectedBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -490,21 +545,34 @@ class CollectionListJson(BaseDatatableView):
 class CashCollectionListJson(BaseDatatableView):
     order_columns = ['id', 'amount', 'buyerID.name', 'companyID', 'collectedBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return CashMoneyCollection.objects.filter(datetime__gte=startDate,
+        # if staff == 'all':
+        #     return CashMoneyCollection.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               isAddedInSales__exact=True)
+        # else:
+        #     return CashMoneyCollection.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               collectedBy_id=int(staff), isAddedInSales__exact=True)
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = CashMoneyCollection.objects.filter(datetime__gte=startDate,
                                                       datetime__lte=endDate + timedelta(days=1),
                                                       isAddedInSales__exact=True)
-        else:
-            return CashMoneyCollection.objects.filter(datetime__gte=startDate,
-                                                      datetime__lte=endDate + timedelta(days=1),
-                                                      collectedBy_id=int(staff), isAddedInSales__exact=True)
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(collectedBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -555,22 +623,35 @@ class CashCollectionListJson(BaseDatatableView):
 
 class StaffAdvanceListJson(BaseDatatableView):
     order_columns = ['id', 'amount', 'buyerID.name', 'companyID', 'collectedBy', 'datetime', 'action']
+    @filter_by_company
 
-    def get_initial_queryset(self):
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
-                                                      datetime__lte=endDate + timedelta(days=1),
-                                                      )
-        else:
-            return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
-                                                      datetime__lte=endDate + timedelta(days=1),
-                                                      collectedBy_id=int(staff))
+        # if staff == 'all':
+        #     return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               )
+        # else:
+        #     return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               collectedBy_id=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
+                                                       datetime__lte=endDate + timedelta(days=1),
+                                                       )
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(collectedBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -621,19 +702,29 @@ class StaffAdvanceListJson(BaseDatatableView):
 
 class ReturnCollectionListJson(BaseDatatableView):
     order_columns = ['id', 'actualBillNumber', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
-
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                                   createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                            createdBy_id=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -686,18 +777,29 @@ class ReturnCollectionListJson(BaseDatatableView):
 class CorrectCollectionListJson(BaseDatatableView):
     order_columns = ['id', 'actualBillNumber', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                                    createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                             createdBy_id=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -749,19 +851,28 @@ class CorrectCollectionListJson(BaseDatatableView):
 
 class CommissionListJson(BaseDatatableView):
     order_columns = ['id', 'actualBillNumber', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
-
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                             createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                      createdBy_id=int(staff))
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -813,19 +924,29 @@ class CommissionListJson(BaseDatatableView):
 
 class ExpenseListJson(BaseDatatableView):
     order_columns = ['id', 'remark', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
-
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                          createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                   createdBy_id=int(staff))
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
+
 
     def filter_queryset(self, qs):
 
@@ -1357,9 +1478,12 @@ def edit_invoice_serial(request):
             messages.success(request, 'Error. Please try again.')
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-
-def invoice_report(request):
+@filter_by_company
+def invoice_report(request,*args,**kwargs):
     request.session['nav'] = '9'
+    company = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
+    print(company,is_super_admin)
     users = StaffUser.objects.filter(isDeleted__exact=False, staffTypeID__name__icontains='sale').order_by('name')
     date = datetime.today().now().strftime('%d/%m/%Y')
     company = Company.objects.filter(isDeleted__exact=False)
