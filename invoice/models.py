@@ -84,6 +84,7 @@ class Commission(models.Model):
     createdBy = models.ForeignKey(StaffUser, blank=True, null=True,on_delete=models.CASCADE)
     amount = models.FloatField(default=0.0)
     companyID = models.ForeignKey(Company, blank=True, null=True,on_delete=models.CASCADE)
+    remark = models.CharField(max_length=300, default='N/A')
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)

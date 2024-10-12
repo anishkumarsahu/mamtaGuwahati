@@ -180,6 +180,7 @@
             <tr>
                 <th scope="col">InvoiceNo.</th>
                 <th scope="col">Amount(₹)</th>
+                <th scope="col">Remark</th>
 
             </tr>
             </thead>
@@ -188,6 +189,7 @@
                 <tr>
                     <td>{{ foo.actualBillNumber }}</td>
                     <td>-{{ foo.amount }}</td>
+                    <td>{{ foo.remark }}</td>
                 </tr>
             {% endfor %}
             </tbody>

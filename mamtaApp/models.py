@@ -2,6 +2,12 @@ from django.contrib.auth.models import User
 from django.db import models
 from stdimage import StdImageField
 
+def get_default_company_id():
+    # Get the first active company ID (or apply your filter)
+    first_company = Company.objects.filter(isDeleted=False).first()
+    if first_company:
+        return first_company.pk  # Return the primary key, not the instance itself
+    return None  # Return None if no company is found
 
 class SuperAdmin(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
@@ -75,6 +81,7 @@ class Buyer(models.Model):
     address = models.CharField(max_length=100, blank=True, null=True)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
     closingBalance = models.FloatField(default=0.0)
+    companyID = models.ForeignKey(Company, blank=True, null=True, default=get_default_company_id(), on_delete=models.CASCADE)
     isDeleted = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True, auto_now=False)
     lastUpdatedOn = models.DateTimeField(auto_now_add=False, auto_now=True)
