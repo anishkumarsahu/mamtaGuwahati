@@ -40,7 +40,7 @@
 <div class="container">
     <div class="row">
         <span style="font-size: 10px;">Date: {{ date }}</span>
-        <span style="font-size: 9px;float: right"> Sales Report-({{ company }})</span>
+        <span style="font-size: 9px;float: right"> Sales Report-({{ user.companyID.name }})</span>
     </div>
 
     <p style="font-size: 10px; margin: 2px;">Cash</p>
@@ -180,6 +180,7 @@
             <tr>
                 <th scope="col">InvoiceNo.</th>
                 <th scope="col">Amount(₹)</th>
+                <th scope="col">Remark</th>
 
             </tr>
             </thead>
@@ -188,6 +189,7 @@
                 <tr>
                     <td>{{ foo.actualBillNumber }}</td>
                     <td>-{{ foo.amount }}</td>
+                    <td>{{ foo.remark }}</td>
                 </tr>
             {% endfor %}
             </tbody>

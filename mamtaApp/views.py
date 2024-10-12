@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from invoice.models import Sales, SalesEdit
+from utils.utils import filter_by_company, filter_by_company_by_def, get_user_company_id
 from .models import *
 
 
@@ -33,7 +34,9 @@ def login_or_logout(request, type):
     data.statusType = type
 
     data.userID_id = request.user.pk
-    if request.user.username != 'anish' and request.user.username != 'superadmin':
+
+    if request.user.username != 'anish' and request.user.username != 'superadmin'and request.user.username != 'super':
+        data.companyID_id = get_user_company_id(request.user.pk)[0]
         data.save()
 
 
@@ -69,12 +72,21 @@ class InvoicePrintListJson(BaseDatatableView):
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        ).exclude(salesType__exact='Card')
+        company_name, user = get_user_company_id(self.request.user.pk)
+        if company_name:
+            if staff == 'all':
+                return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1)
+                                            ,InvoiceSeriesID__companyID_id=company_name ).exclude(salesType__exact='Card')
+            else:
+                return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                            createdBy=int(staff),InvoiceSeriesID__companyID_id=company_name).exclude(salesType__exact='Card')
         else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        createdBy=int(staff)).exclude(salesType__exact='Card')
+            if staff == 'all':
+                return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                            ).exclude(salesType__exact='Card')
+            else:
+                return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                            createdBy=int(staff)).exclude(salesType__exact='Card')
 
     def filter_queryset(self, qs):
 
@@ -114,9 +126,15 @@ class InvoicePrintListJson(BaseDatatableView):
 class LoginListJson(BaseDatatableView):
     order_columns = ['id', 'userID', 'statusType', 'datetime', ]
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = LoginAndLogoutStatus.objects.filter(isDeleted__exact=False, statusType__exact='Login')
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
 
-        return LoginAndLogoutStatus.objects.filter(isDeleted__exact=False, statusType__exact='Login')
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -151,9 +169,15 @@ class LoginListJson(BaseDatatableView):
 class LogoutListJson(BaseDatatableView):
     order_columns = ['id', 'userID', 'statusType', 'datetime', ]
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = LoginAndLogoutStatus.objects.filter(isDeleted__exact=False, statusType__exact='Logout')
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
 
-        return LoginAndLogoutStatus.objects.filter(isDeleted__exact=False, statusType__exact='Logout')
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -187,9 +211,16 @@ class LogoutListJson(BaseDatatableView):
 class BuyerListJson(BaseDatatableView):
     order_columns = ['id', 'name', 'phoneNumber', 'closingBalance', 'address', ]
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Buyer.objects.filter(isDeleted__exact=False)
 
-        return Buyer.objects.filter(isDeleted__exact=False)
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company, isDeleted=False)
+
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -496,9 +527,15 @@ class CollectionListChequeJson(BaseDatatableView):
 class ManageCompanyListJson(BaseDatatableView):
     order_columns = ['id', 'name', 'phoneNumber', 'address', 'datetime']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Company.objects.filter(isDeleted__exact=False)
+        if not is_super_admin:
+            qs = Company.objects.filter(isDeleted__exact=False, name__exact = company )
 
-        return Company.objects.filter(isDeleted__exact=False)
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -540,9 +577,16 @@ class ManageCompanyListJson(BaseDatatableView):
 class StaffListJson(BaseDatatableView):
     order_columns = ['id', 'photo', 'name', 'phoneNumber', 'companyID', 'staffTypeID', 'isActive', 'canTakePayment']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = StaffUser.objects.filter(isDeleted__exact=False)
+        if not is_super_admin:
+            qs = StaffUser.objects.filter(isDeleted__exact=False, companyID__name__exact=company)
 
-        return StaffUser.objects.filter(isDeleted__exact=False)
+
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -941,22 +985,34 @@ class SupplierCollectionAdminListChequeJson(BaseDatatableView):
 
 
 @check_group('Both')
-def home(request):
-    try:
-        b = json.loads(Balance().decode('utf-8'))
-        bal = b['balance']['sms']
-    except:
-        bal = 0
+@filter_by_company_by_def
+def home(request, *args, **kwargs):
+    # try:
+    #     b = json.loads(Balance().decode('utf-8'))
+    #     bal = b['balance']['sms']
+    # except:
+    bal = 0
     request.session['nav'] = '1'
+    company_name = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
     staff = StaffUser.objects.filter(isDeleted__exact=False).count()
     buyer = Buyer.objects.filter(isDeleted__exact=False).count()
     credit = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date()).aggregate(Sum('amount'))
     due = Buyer.objects.aggregate(Sum('closingBalance'))
+    if not is_super_admin:
+        staff = StaffUser.objects.filter(isDeleted__exact=False, companyID__name__exact=company_name).count()
+        buyer = Buyer.objects.filter(isDeleted__exact=False, companyID__name__exact=company_name).count()
+        credit = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date(), companyID__name__exact=company_name).aggregate(Sum('amount'))
+        due = Buyer.objects.filter(isDeleted=False, companyID__name__exact=company_name).aggregate(Sum('closingBalance'))
+
     date_list = []
     credit_list = []
     for i in range(11):
         c = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date() - timedelta(i)).aggregate(
             Sum('amount'))
+        if not is_super_admin:
+            c = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date() - timedelta(i), companyID__name__exact=company_name).aggregate(
+                Sum('amount'))
         if c['amount__sum'] == None:
             credit_list.append(0)
         else:
@@ -988,10 +1044,15 @@ def staff(request):
     return render(request, 'mamtaApp/staffs.html', context)
 
 
+@filter_by_company_by_def
 @check_group('Both')
-def add_staff(request):
+def add_staff(request, *args, **kwargs):
     staffType = StaffType.objects.filter(isDeleted__exact=False)
+    company_name = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
     company = Company.objects.filter(isDeleted__exact=False)
+    if not is_super_admin:
+        company = Company.objects.filter(isDeleted__exact=False, name__exact=company_name)
     context = {
         'types': staffType,
         'company': company
@@ -1008,17 +1069,25 @@ def detail_staff(request, id=None):
     return render(request, 'mamtaApp/staffDetail.html', context)
 
 
+@filter_by_company_by_def
 @check_group('Both')
-def edit_staff(request, id=None):
+def edit_staff(request, id=None, *args, **kwargs):
     instance = get_object_or_404(StaffUser, pk=id)
+
+    company_name = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
+
     staffType = StaffType.objects.filter(isDeleted__exact=False)
     company = Company.objects.filter(isDeleted__exact=False)
+    if not is_super_admin:
+        company = Company.objects.filter(isDeleted__exact=False, name__exact=company_name)
+
 
     context = {
-        'instance': instance,
-        'types': staffType,
-        'company': company
-    }
+            'instance': instance,
+            'types': staffType,
+            'company': company
+        }
     return render(request, 'mamtaApp/editStaff.html', context)
 
 
@@ -1358,6 +1427,7 @@ def add_buyer_api(request):
             buyer.phoneNumber = phoneNumber
             buyer.address = address
             buyer.closingBalance = float(closingBalance)
+            buyer.companyID_id = get_user_company_id(request.user.pk)[0]
 
             buyer.save()
             messages.success(request, 'New buyer added successfully.')
@@ -1481,9 +1551,15 @@ def delete_money_to_be_collected(request):
 
 # -----------------report-------------------
 @check_group('Both')
-def report(request):
+@filter_by_company_by_def
+def report(request, *args, **kwargs):
     request.session['nav'] = '5'
+    company_name = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
     users = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
+    if not is_super_admin:
+        users = StaffUser.objects.filter(isDeleted__exact=False, companyID__name__exact=company_name).order_by('name')
+    # users = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
     date = datetime.today().now().strftime('%d/%m/%Y')
     context = {
         'users': users,
@@ -1752,9 +1828,15 @@ def edit_collection_supplier_api(request):
 
 
 @check_group('Both')
-def supplier_collection_report(request):
+@filter_by_company_by_def
+def supplier_collection_report(request, *args, **kwargs):
     request.session['nav'] = '55'
+    company_name = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
     users = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
+    if not is_super_admin:
+        users = StaffUser.objects.filter(isDeleted__exact=False, companyID__name__exact=company_name).order_by('name')
+
     date = datetime.today().now().strftime('%d/%m/%Y')
     context = {
         'users': users,
@@ -1766,7 +1848,12 @@ def supplier_collection_report(request):
 @check_group('Both')
 def print_report(request):
     request.session['nav'] = '56'
-    users = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
+        users = StaffUser.objects.filter(isDeleted__exact=False, companyID_id__exact=company_name).order_by('name')
+    else:
+        users = StaffUser.objects.filter(isDeleted__exact=False).order_by('name')
+
     date = datetime.today().now().strftime('%d/%m/%Y')
     context = {
         'users': users,

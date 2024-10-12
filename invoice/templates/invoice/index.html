@@ -158,7 +158,7 @@
 <div id="nonPrintDiv">
     <div class="col-md-12">
         <h4>A123DACN</h4>
-        {% if user == 'Admin' %}
+        {% if user == 'Admin' or user == 'Super Admin' %}
             <ul style="    position: fixed;top: 7px;right: 2%; width: 10%;" class="nav">
 
                 <a href="{% url 'invoiceApp:invoice_report' %}"
@@ -195,13 +195,13 @@
 
             </ul>
             <ul style="    position: fixed;bottom: 80px;font-size: 12px" class="nav">
-                <span>User:{% if user == 'Admin' %}
-                    Admin
+                <span>User:{% if user == 'Admin' or user == 'Super Admin' %}
+                    {{ user }}
                     {% else %}{{ user.name|capfirst }}
                 {% endif %} </span>
             </ul>
             <ul style="position: fixed;bottom: 0;padding-bottom: 20px" class="nav">
-                <span style="color: grey;font-size: 12px;position: absolute;top: 37px;left: 0;">{{ user.companyID.name }}</span>
+                <span style="color: grey;font-size: 12px;position: absolute;top: 37px;left: 0;">{{ user.companyID }}</span>
                 <a href="{% url 'mamtaApp:logout' %}"
                    style="font-weight: bold;float: left;padding-right: 10px;background-color: #2d4760;border-color: #2d4760"
                    type="button" class="btn btn-warning">Logout</a>
@@ -543,7 +543,7 @@
                                             </div>
 
                                         </div>
-                                        <div class="col-sm-5">
+                                        <div class="col-sm-3">
                                             <div class="form-group"><br>
                                                 <input type="number" class="form-control" id="invoiceNumberCommission"
                                                        aria-describedby=""
@@ -551,11 +551,19 @@
                                             </div>
 
                                         </div>
-                                        <div class="col-sm-4 col-xs-4">
+                                        <div class="col-sm-3 col-xs-4">
                                             <div class="form-group"><br>
                                                 <input type="number" class="form-control" id="AmountCommission"
                                                        aria-describedby=""
                                                        placeholder="Rs." value="0">
+
+                                            </div>
+                                        </div>
+                                    <div class="col-sm-3 ">
+                                            <div class="form-group"><br>
+                                                <input type="text" class="form-control" id="RemarkCommission"
+                                                       aria-describedby=""
+                                                       placeholder="Remark" >
 
                                             </div>
                                         </div>
@@ -1665,10 +1673,12 @@
                 var sIDReturn = $('#sIDCommission').val();
                 var invoiceNumberReturn = $('#invoiceNumberCommission').val();
                 var AmountReturn = $('#AmountCommission').val();
+                var RemarkCommission = $('#RemarkCommission').val();
                 data = new FormData();
                 data.append('sIDReturn', sIDReturn);
                 data.append('invoiceNumberReturn', invoiceNumberReturn);
                 data.append('AmountReturn', AmountReturn);
+                data.append('RemarkCommission', RemarkCommission);
                 data.append('csrfmiddlewaretoken', csrfmiddlewaretoken);
 
                 if (invoiceNumberReturn === "" || AmountReturn === "") {

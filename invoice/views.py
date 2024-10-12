@@ -1,7 +1,8 @@
-import json
+import calendar
+from datetime import datetime, timedelta, date
 
 from django.contrib import messages
-from django.db.models import Q, FloatField, IntegerField
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -9,12 +10,13 @@ from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from weasyprint import HTML, CSS
-from mamtaApp.views import check_group
-from .models import *
-# Create your views here.
 
-from datetime import datetime, timedelta, date
-import calendar
+from mamtaApp.views import check_group
+from utils.utils import filter_by_company, filter_by_company_by_def, get_user_company_id
+from .models import *
+
+
+# Create your views here.
 
 
 def enable_opening_balance(request):
@@ -56,9 +58,15 @@ def enable_opening_balance(request):
 class InvoiceSeriesListJson(BaseDatatableView):
     order_columns = ['id', 'series', 'companyID']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = InvoiceSeries.objects.filter(isDeleted__exact=False)
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
 
-        return InvoiceSeries.objects.filter(isDeleted__exact=False)
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -110,20 +118,28 @@ class InvoiceSeriesListJson(BaseDatatableView):
 class InvoiceCreatedByCashListJson(BaseDatatableView):
     order_columns = ['id', 'billNumber', 'amount', 'salesType', 'InvoiceSeriesID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
+
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Cash', )
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Cash',
-                                        createdBy=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Cash')
+
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -186,20 +202,34 @@ class InvoiceCreatedByCashListJson(BaseDatatableView):
 class InvoiceCreatedByCardListJson(BaseDatatableView):
     order_columns = ['id', 'billNumber', 'amount', 'salesType', 'InvoiceSeriesID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Card', )
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Card',
-                                        createdBy=int(staff))
+        # if staff == 'all':
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Card', )
+        # else:
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Card',
+        #                                 createdBy=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Card')
+
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -263,20 +293,32 @@ class InvoiceCreatedByMixListJson(BaseDatatableView):
     order_columns = ['id', 'billNumber', 'amount', 'mixCardAmount', 'salesType', 'InvoiceSeriesID', 'createdBy',
                      'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Mix', )
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Mix',
-                                        createdBy=int(staff))
+        # if staff == 'all':
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Mix', )
+        # else:
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Mix',
+        #                                 createdBy=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Mix')
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -344,20 +386,32 @@ class InvoiceCreatedByCreditListJson(BaseDatatableView):
                      'createdBy',
                      'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Credit', )
-        else:
-            return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                        salesType__exact='Credit',
-                                        createdBy=int(staff))
+        # if staff == 'all':
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Credit', )
+        # else:
+        #     return Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                 salesType__exact='Credit',
+        #                                 createdBy=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Sales.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                  salesType__exact='Credit')
+        if not is_super_admin:
+            qs = qs.filter(InvoiceSeriesID__companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -422,19 +476,31 @@ class InvoiceCreatedByCreditListJson(BaseDatatableView):
 class CollectionListJson(BaseDatatableView):
     order_columns = ['id', 'amount', 'buyerID.name', 'companyID', 'collectedBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                                  isAddedInSales__exact=True)
-        else:
-            return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                                  collectedBy_id=int(staff), isAddedInSales__exact=True)
+        # if staff == 'all':
+        #     return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                           isAddedInSales__exact=True)
+        # else:
+        #     return MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                           collectedBy_id=int(staff), isAddedInSales__exact=True)
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = MoneyCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+                                            isAddedInSales__exact=True)
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(collectedBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -486,21 +552,34 @@ class CollectionListJson(BaseDatatableView):
 class CashCollectionListJson(BaseDatatableView):
     order_columns = ['id', 'amount', 'buyerID.name', 'companyID', 'collectedBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return CashMoneyCollection.objects.filter(datetime__gte=startDate,
-                                                      datetime__lte=endDate + timedelta(days=1),
-                                                      isAddedInSales__exact=True)
-        else:
-            return CashMoneyCollection.objects.filter(datetime__gte=startDate,
-                                                      datetime__lte=endDate + timedelta(days=1),
-                                                      collectedBy_id=int(staff), isAddedInSales__exact=True)
+        # if staff == 'all':
+        #     return CashMoneyCollection.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               isAddedInSales__exact=True)
+        # else:
+        #     return CashMoneyCollection.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               collectedBy_id=int(staff), isAddedInSales__exact=True)
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = CashMoneyCollection.objects.filter(datetime__gte=startDate,
+                                                datetime__lte=endDate + timedelta(days=1),
+                                                isAddedInSales__exact=True)
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(collectedBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -552,21 +631,34 @@ class CashCollectionListJson(BaseDatatableView):
 class StaffAdvanceListJson(BaseDatatableView):
     order_columns = ['id', 'amount', 'buyerID.name', 'companyID', 'collectedBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
-                                                      datetime__lte=endDate + timedelta(days=1),
-                                                      )
-        else:
-            return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
-                                                      datetime__lte=endDate + timedelta(days=1),
-                                                      collectedBy_id=int(staff))
+        # if staff == 'all':
+        #     return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               )
+        # else:
+        #     return StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
+        #                                               datetime__lte=endDate + timedelta(days=1),
+        #                                               collectedBy_id=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = StaffAdvanceToBuyer.objects.filter(datetime__gte=startDate,
+                                                datetime__lte=endDate + timedelta(days=1),
+                                                )
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(collectedBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -618,18 +710,29 @@ class StaffAdvanceListJson(BaseDatatableView):
 class ReturnCollectionListJson(BaseDatatableView):
     order_columns = ['id', 'actualBillNumber', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                                   createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                            createdBy_id=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = ReturnCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -682,18 +785,29 @@ class ReturnCollectionListJson(BaseDatatableView):
 class CorrectCollectionListJson(BaseDatatableView):
     order_columns = ['id', 'actualBillNumber', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                                    createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                             createdBy_id=int(staff))
+
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = CorrectCollection.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -744,20 +858,30 @@ class CorrectCollectionListJson(BaseDatatableView):
 
 
 class CommissionListJson(BaseDatatableView):
-    order_columns = ['id', 'actualBillNumber', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
+    order_columns = ['id', 'actualBillNumber', 'amount', 'remark', 'companyID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                             createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                      createdBy_id=int(staff))
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Commission.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -765,7 +889,8 @@ class CommissionListJson(BaseDatatableView):
         if search:
             qs = qs.filter(
                 Q(actualBillNumber__icontains=search) | Q(amount__icontains=search) | Q(datetime__icontains=search) | Q(
-                    createdBy__name__icontains=search))
+                    createdBy__name__icontains=search) | Q(
+                    remark__icontains=search))
 
         return qs
 
@@ -776,7 +901,7 @@ class CommissionListJson(BaseDatatableView):
             if 'Moderator' in self.request.user.groups.values_list('name', flat=True):
                 action = '''<span>N/A</span>'''.format(item.pk)
             else:
-                action = '''<span> <a onclick="getDetailCommission('{}','{}','{}')" data-toggle="modal"
+                action = '''<span> <a onclick="getDetailCommission('{}','{}','{}','{}')" data-toggle="modal"
                                data-target="#defaultModalCommissionEdit"><button style="background-color: #3F51B5;color: white;" type="button"
                                class="btn  waves-effect " data-toggle="modal"
                                data-target="#largeModalEdit">
@@ -788,7 +913,8 @@ class CommissionListJson(BaseDatatableView):
                                data-target="#defaultModalDeleteCommission">
                            <i class="material-icons">delete</i></button></span>'''.format(item.pk,
                                                                                           item.actualBillNumber,
-                                                                                          item.amount, item.pk)
+                                                                                          item.amount, item.remark,
+                                                                                          item.pk)
             if item.createdBy is None:
                 createdBy = 'Admin'
             else:
@@ -797,6 +923,7 @@ class CommissionListJson(BaseDatatableView):
                 escape(i),
                 escape(item.actualBillNumber),  # escape HTML for security reasons
                 '-' + str(item.amount),  # escape HTML for security reasons
+                escape(item.remark),  # escape HTML for security reasons
                 escape(item.companyID.name),  # escape HTML for security reasons
                 createdBy,  # escape HTML for security reasons
                 escape(item.datetime.strftime('%d-%m-%Y %I:%M %p')),
@@ -810,18 +937,28 @@ class CommissionListJson(BaseDatatableView):
 class ExpenseListJson(BaseDatatableView):
     order_columns = ['id', 'remark', 'amount', 'companyID', 'createdBy', 'datetime', 'action']
 
-    def get_initial_queryset(self):
+    @filter_by_company
+    def get_initial_queryset(self, *args, **kwargs):
 
         sDate = self.request.GET.get('startDate')
         eDate = self.request.GET.get('endDate')
         staff = self.request.GET.get('staff')
         startDate = datetime.strptime(sDate, '%d/%m/%Y')
         endDate = datetime.strptime(eDate, '%d/%m/%Y')
-        if staff == 'all':
-            return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
-        else:
-            return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
-                                          createdBy_id=int(staff))
+        # if staff == 'all':
+        #     return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        # else:
+        #     return Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1),
+        #                                   createdBy_id=int(staff))
+        company = kwargs.get('company')
+        is_super_admin = kwargs.get('is_super_admin')
+        qs = Expense.objects.filter(datetime__gte=startDate, datetime__lte=endDate + timedelta(days=1))
+        if not is_super_admin:
+            qs = qs.filter(companyID__name__exact=company)
+
+        if staff != 'all':
+            qs = qs.filter(createdBy=int(staff))
+        return qs
 
     def filter_queryset(self, qs):
 
@@ -872,13 +1009,23 @@ class ExpenseListJson(BaseDatatableView):
 
 
 def index(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        user = 'Admin'
-        invoiceSerial = InvoiceSeries.objects.filter(isDeleted__exact=False).order_by('series')
-    else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
-        invoiceSerial = InvoiceSeries.objects.filter(companyID_id=user.companyID_id, isDeleted__exact=False).order_by(
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name and user:
+        invoiceSerial = InvoiceSeries.objects.filter(companyID_id=company_name, isDeleted__exact=False).order_by(
             'series')
+        user = user if isinstance(user, StaffUser) else 'Admin'
+    else:
+        invoiceSerial = InvoiceSeries.objects.filter( isDeleted__exact=False).order_by(
+            'series')
+        user = 'Super Admin'
+
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     user = 'Admin'
+    #     invoiceSerial = InvoiceSeries.objects.filter(isDeleted__exact=False).order_by('series')
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #     invoiceSerial = InvoiceSeries.objects.filter(companyID_id=user.companyID_id, isDeleted__exact=False).order_by(
+    #         'series')
     in_list = []
     for obj in invoiceSerial:
         in_dic = {
@@ -888,7 +1035,6 @@ def index(request):
         }
 
         in_list.append(in_dic)
-
     context = {
         'InvoiceSeries': in_list,
         'user': user
@@ -914,80 +1060,75 @@ def generate_serial_invoice_number(request):
 def get_invoice_series(request, *args, **kwargs):
     id = request.GET.get('id')
     today = date.today()
-    startDate = today.strftime("%d/%m/%Y")
-    dateI = datetime.strptime(startDate, '%d/%m/%Y')
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        user = 'Admin'
+    start_date = today.strftime("%d/%m/%Y")
+    dateI = datetime.strptime(start_date, '%d/%m/%Y')
 
-    else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
+    # # Determine user role
+    # user_group = request.user.groups.values_list('name', flat=True)
+    # user = 'Admin' if 'Both' in user_group else StaffUser.objects.get(userID_id=request.user.pk)
 
+    # Get company and users
+    company_name, users = get_user_company_id(request.user.pk)
+
+    # Fetch invoice series based on 'id'
+    invoice_by_user = None
     if id == 'None':
-        if 'Both' in request.user.groups.values_list('name', flat=True):
+        invoice_by_user = InvoiceSeries.objects.filter(isDeleted=False,
+                                                       companyID_id=company_name).first() if company_name else InvoiceSeries.objects.filter(isDeleted=False
+                                                       ).first()
+    elif company_name:
+        try:
+            invoice_by_user = InvoiceSeries.objects.get(pk=int(id), isDeleted=False, companyID_id=company_name)
+        except :
+            invoice_by_user = InvoiceSeries.objects.get(pk=int(id), isDeleted=False)
 
-            invoiceByUser = InvoiceSeries.objects.filter(isDeleted__exact=False).first()
-        else:
-            invoiceByUser = InvoiceSeries.objects.filter(companyID_id=user.companyID_id, isDeleted__exact=False).first()
+    # Fetch sales information if invoice series exists
+    salesID = Sales.objects.filter(InvoiceSeriesID_id=invoice_by_user.pk).order_by('-numberMain')
+    if company_name and invoice_by_user:
+        salesID = Sales.objects.filter(InvoiceSeriesID_id=invoice_by_user.pk).order_by('-numberMain')
 
-    else:
-        if 'Both' in request.user.groups.values_list('name', flat=True):
-            invoiceByUser = InvoiceSeries.objects.get(pk=int(id), isDeleted__exact=False)
-
-        else:
-            invoiceByUser = InvoiceSeries.objects.get(pk=int(id), companyID_id=user.companyID_id,
-                                                      isDeleted__exact=False)
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-
-        salesID = Sales.objects.filter(InvoiceSeriesID_id=invoiceByUser.pk,
-                                       ).order_by('-numberMain')
-    else:
-        salesID = Sales.objects.filter(InvoiceSeriesID_id=invoiceByUser.pk,
-                                       InvoiceSeriesID__companyID_id=user.companyID_id).order_by('-numberMain')
-
-    # used
+    # Prepare lists for used and unused invoices
     used_invoice_id_list = []
     un_used_invoice_id_list = []
-    upcoming_serials_invoice_id_list = []
-    if salesID.first() == None:
-        un_used = invoiceByUser.startsWith
-        for i in InvoiceSerial.objects.filter(numberMain__gte=int(un_used)).order_by('numberMain')[0:80]:
-            un_used_invoice_id_dic = {
-                'Serial': str(invoiceByUser.series) + str(i.number),
-                'SeriesID': invoiceByUser.pk,
-                'MainSeries': invoiceByUser.series,
-                'MainNumber': i.numberMain
-            }
-            un_used_invoice_id_list.append(un_used_invoice_id_dic)
 
+    # If no sales are present, show unused invoices starting from the invoice start number
+    if not salesID or not salesID.exists():
+        un_used = invoice_by_user.startsWith
+        for serial in InvoiceSerial.objects.filter(numberMain__gte=int(un_used)).order_by('numberMain')[:80]:
+            un_used_invoice_id_list.append({
+                'Serial': f"{invoice_by_user.series}{serial.number}",
+                'SeriesID': invoice_by_user.pk,
+                'MainSeries': invoice_by_user.series,
+                'MainNumber': serial.numberMain
+            })
     else:
-        un_used_first = salesID.first()
-        for i in InvoiceSerial.objects.filter(numberMain__gt=int(un_used_first.numberMain - 150),
-                                              numberMain__lt=int(un_used_first.numberMain + 80),
-                                              numberMain__gte=invoiceByUser.startsWith).order_by('numberMain'):
-            try:
-                sale = Sales.objects.get(numberMain__exact=i.numberMain, InvoiceSeriesID_id=invoiceByUser.pk)
-                used_invoice_id_dic = {
-                    'Serial': str(invoiceByUser.series) + str(i.number),
-                    'SeriesID': invoiceByUser.pk,
-                    'MainSeries': invoiceByUser.series,
-                    'MainNumber': i.numberMain
-                }
-                used_invoice_id_list.insert(0, used_invoice_id_dic)
-            except:
-                un_used_invoice_id_dic = {
-                    'Serial': str(invoiceByUser.series) + str(i.number),
-                    'SeriesID': invoiceByUser.pk,
-                    'MainSeries': invoiceByUser.series,
-                    'MainNumber': i.numberMain
-                }
-                un_used_invoice_id_list.append(un_used_invoice_id_dic)
+        # For existing sales, calculate used and unused invoice ranges
+        first_sale = salesID.first()
+        start_range = first_sale.numberMain - 100
+        end_range = first_sale.numberMain + 100
+        for serial in InvoiceSerial.objects.filter(numberMain__gt=start_range, numberMain__lt=end_range,
+                                                   numberMain__gte=invoice_by_user.startsWith).order_by('numberMain'):
+            if Sales.objects.filter(numberMain=serial.numberMain, InvoiceSeriesID_id=invoice_by_user.pk).exists():
+                used_invoice_id_list.insert(0, {
+                    'Serial': f"{invoice_by_user.series}{serial.number}",
+                    'SeriesID': invoice_by_user.pk,
+                    'MainSeries': invoice_by_user.series,
+                    'MainNumber': serial.numberMain
+                })
+            else:
+                un_used_invoice_id_list.append({
+                    'Serial': f"{invoice_by_user.series}{serial.number}",
+                    'SeriesID': invoice_by_user.pk,
+                    'MainSeries': invoice_by_user.series,
+                    'MainNumber': serial.numberMain
+                })
 
     data = {
         'Used': used_invoice_id_list,
         'UnUsed': un_used_invoice_id_list,
-        'Upcoming': upcoming_serials_invoice_id_list,
-
+        'Upcoming': []  # No logic for upcoming, so kept empty
     }
+
     return JsonResponse({'data': data})
 
 
@@ -1299,10 +1440,15 @@ def delete_cash_collection_api(request):
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
-def invoice_list(request):
+@filter_by_company_by_def
+def invoice_list(request, *args, **kwargs):
     request.session['nav'] = '8'
     staff = StaffUser.objects.filter(isDeleted__exact=False, staffTypeID__name__icontains='sale').order_by('name')
-    company = Company.objects.filter(isDeleted__exact=False).order_by('name')
+    company_name = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
+    company = Company.objects.filter(isDeleted__exact=False)
+    if not is_super_admin:
+        company = Company.objects.filter(isDeleted__exact=False, name__exact=company_name)
     context = {
         'staff': staff,
         'company': company
@@ -1354,12 +1500,21 @@ def edit_invoice_serial(request):
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
-def invoice_report(request):
+@filter_by_company_by_def
+def invoice_report(request, *args, **kwargs):
     request.session['nav'] = '9'
-    users = StaffUser.objects.filter(isDeleted__exact=False, staffTypeID__name__icontains='sale').order_by('name')
     date = datetime.today().now().strftime('%d/%m/%Y')
+    company_name = kwargs.get('company')
+    is_super_admin = kwargs.get('is_super_admin')
+
+    users = StaffUser.objects.filter(isDeleted__exact=False, staffTypeID__name__icontains='sale').order_by('name')
     company = Company.objects.filter(isDeleted__exact=False)
     buyers = Buyer.objects.filter(isDeleted__exact=False).order_by('name')
+    if not is_super_admin:
+        users = StaffUser.objects.filter(isDeleted__exact=False, staffTypeID__name__icontains='sale',
+                                         companyID__name__exact=company_name).order_by('name')
+        company = Company.objects.filter(isDeleted__exact=False, name__exact=company_name)
+        buyers = Buyer.objects.filter(isDeleted__exact=False, companyID__name__exact=company_name).order_by('name')
 
     context = {
         'users': users,
@@ -1374,18 +1529,22 @@ def generate_net_report(request):
     user = StaffUser.objects.get(userID_id=request.user.pk)
     date = datetime.today().date()
     sales_cash = Sales.objects.filter(datetime__icontains=datetime.today().date(),
-                                      salesType__icontains='cash',isDeleted__exact=False,
-                                      InvoiceSeriesID__companyID_id=user.companyID_id).order_by('InvoiceSeriesID').order_by('numberMain')
+                                      salesType__icontains='cash', isDeleted__exact=False,
+                                      InvoiceSeriesID__companyID_id=user.companyID_id).order_by(
+        'InvoiceSeriesID').order_by('numberMain')
     sales_card = Sales.objects.filter(datetime__icontains=datetime.today().date(),
-                                      salesType__icontains='card',isDeleted__exact=False,
-                                      InvoiceSeriesID__companyID_id=user.companyID_id).order_by('InvoiceSeriesID').order_by('numberMain')
+                                      salesType__icontains='card', isDeleted__exact=False,
+                                      InvoiceSeriesID__companyID_id=user.companyID_id).order_by(
+        'InvoiceSeriesID').order_by('numberMain')
     sales_credit = Sales.objects.filter(datetime__icontains=datetime.today().date(),
-                                        salesType__icontains='credit',isDeleted__exact=False,
-                                        InvoiceSeriesID__companyID_id=user.companyID_id).order_by('InvoiceSeriesID').order_by('numberMain')
+                                        salesType__icontains='credit', isDeleted__exact=False,
+                                        InvoiceSeriesID__companyID_id=user.companyID_id).order_by(
+        'InvoiceSeriesID').order_by('numberMain')
 
     sales_mix = Sales.objects.filter(datetime__icontains=datetime.today().date(),
-                                     salesType__icontains='Mix',isDeleted__exact=False,
-                                     InvoiceSeriesID__companyID_id=int(user.companyID_id)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                     salesType__icontains='Mix', isDeleted__exact=False,
+                                     InvoiceSeriesID__companyID_id=int(user.companyID_id)).order_by(
+        'InvoiceSeriesID').order_by('numberMain')
 
     cash_total = 0.0
     for cash in sales_cash:
@@ -1421,14 +1580,14 @@ def generate_net_report(request):
                     skipped_list.append(str(invoice.series) + str(i.number))
         except:
             pass
-    returns = ReturnCollection.objects.filter(datetime__icontains=datetime.today().date(),isDeleted__exact=False,
+    returns = ReturnCollection.objects.filter(datetime__icontains=datetime.today().date(), isDeleted__exact=False,
                                               companyID_id=user.companyID_id).order_by('actualBillNumber')
-    corrections = CorrectCollection.objects.filter(datetime__icontains=datetime.today().date(),isDeleted__exact=False,
+    corrections = CorrectCollection.objects.filter(datetime__icontains=datetime.today().date(), isDeleted__exact=False,
                                                    companyID_id=user.companyID_id).order_by('actualBillNumber')
 
-    commissions = Commission.objects.filter(datetime__icontains=datetime.today().date(),isDeleted__exact=False,
+    commissions = Commission.objects.filter(datetime__icontains=datetime.today().date(), isDeleted__exact=False,
                                             companyID_id=user.companyID_id).order_by('actualBillNumber')
-    expenses = Expense.objects.filter(datetime__icontains=datetime.today().date(),isDeleted__exact=False,
+    expenses = Expense.objects.filter(datetime__icontains=datetime.today().date(), isDeleted__exact=False,
                                       companyID_id=user.companyID_id).order_by('datetime')
 
     return_total = 0.0
@@ -1450,7 +1609,7 @@ def generate_net_report(request):
                                          isDeleted__exact=False,
                                          isAddedInSales__exact=True).order_by('datetime')
 
-    advance = StaffAdvanceToBuyer.objects.filter(datetime__icontains=datetime.today().date(),isDeleted__exact=False,
+    advance = StaffAdvanceToBuyer.objects.filter(datetime__icontains=datetime.today().date(), isDeleted__exact=False,
                                                  companyID_id=int(user.companyID_id)).order_by('datetime')
     advance_total = 0.0
     for ad in advance:
@@ -1478,8 +1637,8 @@ def generate_net_report(request):
         'expense_total': expense_total,
         'mix_total': mix_cash_total + mix_card_total,
         'col': col,
-        'advance':advance,
-        'advance_total':advance_total
+        'advance': advance,
+        'advance_total': advance_total
     }
 
     response = HttpResponse(content_type="application/pdf")
@@ -1498,17 +1657,21 @@ def generate_net_report_admin(request):
     day_string = date1.strftime('%Y-%m-%d')
     date = datetime.today().date()
     sales_cash = Sales.objects.filter(datetime__icontains=day_string,
-                                      salesType__icontains='cash',isDeleted__exact=False,
-                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                      salesType__icontains='cash', isDeleted__exact=False,
+                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by(
+        'InvoiceSeriesID').order_by('numberMain')
     sales_card = Sales.objects.filter(datetime__icontains=day_string,
-                                      salesType__icontains='card',isDeleted__exact=False,
-                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                      salesType__icontains='card', isDeleted__exact=False,
+                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by(
+        'InvoiceSeriesID').order_by('numberMain')
     sales_credit = Sales.objects.filter(datetime__icontains=day_string,
-                                        salesType__icontains='credit',isDeleted__exact=False,
-                                        InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                        salesType__icontains='credit', isDeleted__exact=False,
+                                        InvoiceSeriesID__companyID_id=int(companyID)).order_by(
+        'InvoiceSeriesID').order_by('numberMain')
     sales_mix = Sales.objects.filter(datetime__icontains=day_string,
-                                     salesType__icontains='Mix',isDeleted__exact=False,
-                                     InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by('numberMain')
+                                     salesType__icontains='Mix', isDeleted__exact=False,
+                                     InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID').order_by(
+        'numberMain')
     cash_total = 0.0
     for cash in sales_cash:
         cash_total = cash_total + cash.amount
@@ -1531,48 +1694,50 @@ def generate_net_report_admin(request):
                                                  isDeleted__exact=False)
 
     skipped_list = []
-    for invoice in invoiceByUser:
-        try:
-            last_sale = Sales.objects.filter(InvoiceSeriesID_id=invoice.pk,isDeleted__exact=False).order_by('-numberMain').first()
-
-            for i in InvoiceSerial.objects.filter(numberMain__gte=int(invoice.startsWith),
-                                                  numberMain__lt=int(last_sale.numberMain)
-                                                  ).order_by('-numberMain')[0:200]:
-                try:
-                    sale = Sales.objects.get(numberMain__exact=i.numberMain, InvoiceSeriesID_id=invoice.pk)
-                except:
-                    skipped_list.append(str(invoice.series) + str(i.number))
-        except:
-            pass
-    returns = ReturnCollection.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    # for invoice in invoiceByUser:
+    #     try:
+    #         last_sale = Sales.objects.filter(InvoiceSeriesID_id=invoice.pk, isDeleted__exact=False).order_by(
+    #             '-numberMain').first()
+    #
+    #         for i in InvoiceSerial.objects.filter(numberMain__gte=int(invoice.startsWith),
+    #                                               numberMain__lt=int(last_sale.numberMain)
+    #                                               ).order_by('-numberMain')[0:200]:
+    #             try:
+    #                 sale = Sales.objects.get(numberMain__exact=i.numberMain, InvoiceSeriesID_id=invoice.pk)
+    #             except:
+    #                 skipped_list.append(str(invoice.series) + str(i.number))
+    #     except:
+    #         pass
+    returns = ReturnCollection.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                               companyID_id=int(companyID)).order_by('actualBillNumber')
 
     return_total = 0.0
     for am in returns:
         return_total = return_total + am.amount
 
-    corrections = CorrectCollection.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    corrections = CorrectCollection.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                                    companyID_id=int(companyID)).order_by('actualBillNumber')
 
     correct_total = 0.0
     for ame in corrections:
         correct_total = correct_total + ame.amount
 
-    commissions = Commission.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    commissions = Commission.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                             companyID_id=int(companyID)).order_by('actualBillNumber')
 
     commission_total = 0.0
     for c in commissions:
         commission_total = commission_total + c.amount
 
-    expenses = Expense.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    expenses = Expense.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                       companyID_id=int(companyID)).order_by('datetime')
 
     expense_total = 0.0
     for e in expenses:
         expense_total = expense_total + e.amount
 
-    col = MoneyCollection.objects.filter(datetime__icontains=day_string, companyID_id=int(companyID),isDeleted__exact=False,
+    col = MoneyCollection.objects.filter(datetime__icontains=day_string, companyID_id=int(companyID),
+                                         isDeleted__exact=False,
                                          isAddedInSales__exact=True).order_by('datetime')
     col_total = 0.0
     for c in col:
@@ -1599,14 +1764,15 @@ def generate_net_report_admin(request):
         opening = 0.0
         closing = 0.0
 
-    advance = StaffAdvanceToBuyer.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    advance = StaffAdvanceToBuyer.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                                  companyID_id=int(companyID)).order_by('datetime')
     advance_total = 0.0
     for ad in advance:
         advance_total = advance_total + ad.amount
 
     rokad_value = opening + closing + float(col_total_cash) + float(sup_total_cash) + float(cash_total) + float(
-        mix_cash_total) + float(correct_total) - float(expense_total) - float(commission_total) - float(return_total)- float(advance_total)
+        mix_cash_total) + float(correct_total) - float(expense_total) - float(commission_total) - float(
+        return_total) - float(advance_total)
     context = {
         'sales_cash': sales_cash,
         'sales_card': sales_card,
@@ -1632,8 +1798,8 @@ def generate_net_report_admin(request):
         'rokad': rokad_value,
         'opening': opening,
         'closing': closing,
-        'advance':advance,
-        'advance_total':advance_total
+        'advance': advance,
+        'advance_total': advance_total
     }
 
     response = HttpResponse(content_type="application/pdf")
@@ -1652,20 +1818,20 @@ def generate_net_report_accountant(request):
     day_string = date1.strftime('%Y-%m-%d')
     date = datetime.today().date()
     sales_cash = Sales.objects.filter(datetime__icontains=day_string,
-                                      salesType__icontains='cash',isDeleted__exact=False,
+                                      salesType__icontains='cash', isDeleted__exact=False,
                                       InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
-                                                 'numberMain')
+                                                                                             'numberMain')
     sales_card = Sales.objects.filter(datetime__icontains=day_string,
-                                      salesType__icontains='card',isDeleted__exact=False,
+                                      salesType__icontains='card', isDeleted__exact=False,
                                       InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
-                                                 'numberMain')
+                                                                                             'numberMain')
     sales_credit = Sales.objects.filter(datetime__icontains=day_string, salesType__icontains='credit',
                                         InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
-                                                 'numberMain')
-    sales_mix = Sales.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+                                                                                               'numberMain')
+    sales_mix = Sales.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                      salesType__icontains='Mix',
                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
-                                                 'numberMain')
+                                                                                            'numberMain')
 
     company = Company.objects.get(pk=int(companyID))
     invoiceByUser = InvoiceSeries.objects.filter(companyID_id=company.pk, isCompleted__exact=False,
@@ -1685,18 +1851,19 @@ def generate_net_report_accountant(request):
                     skipped_list.append(str(invoice.series) + str(i.number))
         except:
             pass
-    returns = ReturnCollection.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    returns = ReturnCollection.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                               companyID_id=int(companyID)).order_by('actualBillNumber')
 
-    corrections = CorrectCollection.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    corrections = CorrectCollection.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                                    companyID_id=int(companyID)).order_by('actualBillNumber')
 
-    commissions = Commission.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    commissions = Commission.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                             companyID_id=int(companyID)).order_by('actualBillNumber')
 
-    expenses = Expense.objects.filter(datetime__icontains=day_string,isDeleted__exact=False,
+    expenses = Expense.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                       companyID_id=int(companyID)).order_by('datetime')
-    advance = StaffAdvanceToBuyer.objects.filter(datetime__icontains=day_string,isDeleted__exact=False, companyID_id=int(companyID)).order_by('datetime')
+    advance = StaffAdvanceToBuyer.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
+                                                 companyID_id=int(companyID)).order_by('datetime')
 
     context = {
         'sales_cash': sales_cash,
@@ -1720,7 +1887,6 @@ def generate_net_report_accountant(request):
 
     HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
     return response
-
 
 
 def generate_monthly_report_admin(request):
@@ -1748,10 +1914,10 @@ def generate_monthly_report_admin(request):
     for d in days:
         day_string = d.strftime('%Y-%m-%d')
         sales_cash = Sales.objects.filter(datetime__contains=day_string,
-                                          salesType__icontains='cash',isDeleted__exact=False,
+                                          salesType__icontains='cash', isDeleted__exact=False,
                                           InvoiceSeriesID__companyID_id=int(companyID)).order_by('datetime')
         sales_card = Sales.objects.filter(datetime__contains=day_string,
-                                          salesType__icontains='card',isDeleted__exact=False,
+                                          salesType__icontains='card', isDeleted__exact=False,
                                           InvoiceSeriesID__companyID_id=int(companyID)).order_by('datetime')
         cash_total = 0.0
         for cash in sales_cash:
@@ -1808,7 +1974,6 @@ def generate_monthly_report_admin(request):
 
         col_list_cash.append(col_dic_cash)
 
-
         supCash = SupplierCollection.objects.filter(datetime__icontains=day_string, companyID_id=int(companyID),
                                                     isDeleted__exact=False,
                                                     isApproved__exact=True, paymentMode='Cash')
@@ -1825,10 +1990,9 @@ def generate_monthly_report_admin(request):
 
         s_list_cash.append(sup_dic_cash)
 
-
         supCheque = SupplierCollection.objects.filter(datetime__icontains=day_string, companyID_id=int(companyID),
                                                       isDeleted__exact=False,
-                                                    isApproved__exact=True, paymentMode='Cheque')
+                                                      isApproved__exact=True, paymentMode='Cheque')
 
         supplier_cheque_total = 0.0
         for scheque in supCheque:
@@ -1888,8 +2052,6 @@ def generate_monthly_report_admin(request):
     return response
 
 
-
-
 def generate_monthly_report_staff_advance_admin(request):
     companyID = request.GET.get('companyID')
     gDate = request.GET.get('gDate')
@@ -1898,22 +2060,22 @@ def generate_monthly_report_staff_advance_admin(request):
     num_days = calendar.monthrange(date1.year, date1.month)[1]
     days = [date(date1.year, date1.month, day) for day in range(1, num_days + 1)]
 
-    buyer_list = StaffAdvanceToBuyer.objects.filter(datetime__month=date1.month, datetime__year=date1.year, isDeleted__exact=False).order_by('buyerID__name').values('buyerID').distinct()
+    buyer_list = StaffAdvanceToBuyer.objects.filter(datetime__month=date1.month, datetime__year=date1.year,
+                                                    isDeleted__exact=False).order_by('buyerID__name').values(
+        'buyerID').distinct()
     g_total = 0.0
     c_list = []
     for buyer in buyer_list:
         buyer_total = 0.0
         for d in days:
             day_string = d.strftime('%Y-%m-%d')
-            sa = StaffAdvanceToBuyer.objects.filter(buyerID_id=int(buyer["buyerID"]),datetime__contains=day_string,
-                                              companyID_id=int(companyID)).order_by('datetime')
-
+            sa = StaffAdvanceToBuyer.objects.filter(buyerID_id=int(buyer["buyerID"]), datetime__contains=day_string,
+                                                    companyID_id=int(companyID)).order_by('datetime')
 
             for s in sa:
-
                 buyer_total = buyer_total + s.amount
 
-        b = Buyer.objects.get(pk = int(buyer["buyerID"]))
+        b = Buyer.objects.get(pk=int(buyer["buyerID"]))
         buyer_dic = {
             'CustomerName': b.name,
             'Total': buyer_total
@@ -1924,8 +2086,8 @@ def generate_monthly_report_staff_advance_admin(request):
     company = Company.objects.get(pk=int(companyID))
 
     context = {
-        'customer':c_list,
-        'g_total':g_total,
+        'customer': c_list,
+        'g_total': g_total,
         'Month': date1.month,
         'Year': date1.year,
         'company': company.name,
@@ -1937,7 +2099,6 @@ def generate_monthly_report_staff_advance_admin(request):
 
     HTML(string=html).write_pdf(response, stylesheets=[CSS(string='@page { size: A5; margin: .3cm ; }')])
     return response
-
 
 
 def search_invoice(request):
@@ -1980,14 +2141,11 @@ def search_invoice(request):
 
 
 def skipped_invoice(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        invoiceByUser = InvoiceSeries.objects.filter(isDeleted__exact=False)
-
-
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
+        invoiceByUser = InvoiceSeries.objects.filter(companyID_id=company_name, isDeleted__exact=False)
     else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
-
-        invoiceByUser = InvoiceSeries.objects.filter(companyID_id=user.companyID_id, isDeleted__exact=False)
+        invoiceByUser = None
 
     skipped_list = []
     for invoice in invoiceByUser:
@@ -2034,9 +2192,13 @@ def take_collection(request):
 
             collection.paymentMode = 'Cash'
             collection.isAddedInSales = True
-            if not 'Both' in request.user.groups.values_list('name', flat=True):
-                user = StaffUser.objects.get(userID_id=request.user.pk)
-                collection.collectedBy_id = user.pk
+            company_name, user = get_user_company_id(request.user.pk)
+            if company_name:
+                try:
+                    user = StaffUser.objects.get(userID_id=request.user.pk)
+                    collection.collectedBy_id = user.pk
+                except:
+                    pass
                 collection.companyID_id = user.companyID_id
             else:
                 collection.companyID_id = 1
@@ -2057,7 +2219,7 @@ def take_collection(request):
                 'datetime': collection.datetime.strftime('%d-%m-%Y %I:%M %p'),
                 'ModeOfPayment': collection.buyerID.name + ' (Collection)'
             }
-            return JsonResponse({'message': 'success','data': data}, safe=False)
+            return JsonResponse({'message': 'success', 'data': data}, safe=False)
 
         except:
             return JsonResponse({'message': 'fail'})
@@ -2075,10 +2237,14 @@ def take_cash_collection(request):
             collection.amount = float(partyAmount)
             collection.paymentMode = 'Cash'
             collection.isAddedInSales = True
-            if not 'Both' in request.user.groups.values_list('name', flat=True):
-                user = StaffUser.objects.get(userID_id=request.user.pk)
-                collection.collectedBy_id = user.pk
-                collection.companyID_id = user.companyID_id
+            company_name, user = get_user_company_id(request.user.pk)
+            if company_name:
+                try:
+                    user = StaffUser.objects.get(userID_id=request.user.pk)
+                    collection.collectedBy_id = user.pk
+                except:
+                    pass
+                collection.companyID_id = company_name
             else:
                 collection.companyID_id = 1
 
@@ -2106,14 +2272,18 @@ def take_cash_collection(request):
 
 
 def get_today_collection_by_company(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     col = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                          isAddedInSales__exact=True).order_by('-datetime')
+    # else:
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
         col = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
+                                             companyID_id=company_name,
                                              isAddedInSales__exact=True).order_by('-datetime')
     else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
-        col = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
-                                             companyID_id=user.companyID_id,
-                                             isAddedInSales__exact=True).order_by('-datetime')
+        col = None
+
     c_list = []
     for c in col:
         data = {
@@ -2129,15 +2299,22 @@ def get_today_collection_by_company(request):
 
 
 def get_today_cash_collection_by_company(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     col = CashMoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                              isAddedInSales__exact=True).order_by('-datetime')
+    #
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #     col = CashMoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                              companyID_id=user.companyID_id,
+    #                                              isAddedInSales__exact=True).order_by('-datetime')
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
         col = CashMoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
+                                                 companyID_id=company_name,
                                                  isAddedInSales__exact=True).order_by('-datetime')
-
     else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
-        col = CashMoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
-                                                 companyID_id=user.companyID_id,
-                                                 isAddedInSales__exact=True).order_by('-datetime')
+        col = None
     c_list = []
     for c in col:
         data = {
@@ -2148,7 +2325,6 @@ def get_today_cash_collection_by_company(request):
         }
 
         c_list.append(data)
-
     return JsonResponse({'message': 'success', 'data': c_list})
 
 
@@ -2161,8 +2337,8 @@ def add_party_from_sales(request):
         pPhone = request.POST.get('pPhone')
 
         try:
-
-            buy = Buyer.objects.filter(name__iexact=pName)
+            company_name, user = get_user_company_id(request.user.pk)
+            buy = Buyer.objects.filter(name__iexact=pName, companyID_id=company_name)
             if buy.count() == 0:
 
                 buy = Buyer()
@@ -2170,6 +2346,11 @@ def add_party_from_sales(request):
                 buy.name = pName
                 buy.address = pAddress
                 buy.closingBalance = 0.0
+                try:
+                    buy.companyID_id = company_name
+                except:
+                    buy.companyID_id = 1
+
                 buy.save()
 
                 c_list = []
@@ -2192,7 +2373,13 @@ def add_party_from_sales(request):
 
 def get_buyer_list(request):
     q = request.GET.get('q')
-    buyer = Buyer.objects.filter(name__icontains=q, isDeleted__exact=False).order_by('name')
+    company, user = get_user_company_id(request.user.pk)
+    if not company:
+        buyer = Buyer.objects.filter(name__icontains=q, isDeleted__exact=False).order_by('name')
+    else:
+        buyer = Buyer.objects.filter(name__icontains=q, isDeleted__exact=False, companyID_id__exact=company).order_by(
+            'name')
+
     c_list = []
     for c in buyer:
         data = {
@@ -2231,25 +2418,29 @@ def change_password_for_sales_user(request):
 
 
 def get_last_three_invoices(request, *args, **kwargs):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        invoiceByUser = InvoiceSeries.objects.filter(isCompleted__exact=False, isDeleted__exact=False)
-
-
-    else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
-
-        invoiceByUser = InvoiceSeries.objects.filter(companyID_id=user.companyID_id, isCompleted__exact=False,
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
+        invoiceByUser = InvoiceSeries.objects.filter(companyID_id=company_name, isCompleted__exact=False,
                                                      isDeleted__exact=False)
+    else:
+        invoiceByUser = None
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     invoiceByUser = InvoiceSeries.objects.filter(isCompleted__exact=False, isDeleted__exact=False)
+    #
+    #
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #
+    #     invoiceByUser = InvoiceSeries.objects.filter(companyID_id=user.companyID_id, isCompleted__exact=False,
+    #                                                  isDeleted__exact=False)
     last_three = []
 
     for inv in invoiceByUser:
-        if 'Both' in request.user.groups.values_list('name', flat=True):
-            salesID = Sales.objects.filter(InvoiceSeriesID_id=inv.pk,
-                                           ).order_by('-id')[0:3]
-
+        if not company_name:
+            salesID = None
         else:
             salesID = Sales.objects.filter(InvoiceSeriesID_id=inv.pk,
-                                           InvoiceSeriesID__companyID_id=user.companyID_id).order_by('-id')[0:3]
+                                           InvoiceSeriesID__companyID_id=company_name).order_by('-id')[0:3]
         for sale in salesID:
             used_invoice_id_dic = {
                 'Serial': sale.billNumber,
@@ -2504,13 +2695,19 @@ def correct_collection(request):
 
 
 def get_today_return_by_company(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        col = ReturnCollection.objects.filter(datetime__icontains=datetime.today().date()).order_by('-datetime')
-
-    else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     col = ReturnCollection.objects.filter(datetime__icontains=datetime.today().date()).order_by('-datetime')
+    #
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #     col = ReturnCollection.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                           companyID_id=user.companyID_id).order_by('-datetime')
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
         col = ReturnCollection.objects.filter(datetime__icontains=datetime.today().date(),
-                                              companyID_id=user.companyID_id).order_by('-datetime')
+                                              companyID_id=company_name).order_by('-datetime')
+    else:
+        col = None
     c_list = []
     for c in col:
         data = {
@@ -2526,13 +2723,19 @@ def get_today_return_by_company(request):
 
 
 def get_today_correction_by_company(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        col = CorrectCollection.objects.filter(datetime__icontains=datetime.today().date()).order_by('-datetime')
-
-    else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     col = CorrectCollection.objects.filter(datetime__icontains=datetime.today().date()).order_by('-datetime')
+    #
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #     col = CorrectCollection.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                            companyID_id=user.companyID_id).order_by('-datetime')
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
         col = CorrectCollection.objects.filter(datetime__icontains=datetime.today().date(),
-                                               companyID_id=user.companyID_id).order_by('-datetime')
+                                               companyID_id=company_name).order_by('-datetime')
+    else:
+        col = None
     c_list = []
     for c in col:
         data = {
@@ -2627,17 +2830,19 @@ def commission_collection(request):
         sIDReturn = request.POST.get('sIDReturn')
         invoiceNumberReturn = request.POST.get('invoiceNumberReturn')
         AmountReturn = request.POST.get('AmountReturn')
+        RemarkCommission = request.POST.get('RemarkCommission')
 
         try:
             re = Commission()
             re.numberMain = int(invoiceNumberReturn)
             re.actualBillNumber = sIDReturn + str(invoiceNumberReturn).zfill(4)
             re.amount = float(AmountReturn)
+            re.remark = RemarkCommission
 
             if not 'Both' in request.user.groups.values_list('name', flat=True):
                 user = StaffUser.objects.get(userID_id=request.user.pk)
                 re.createdBy_id = user.pk
-                re.companyID_id = user.companyID_id
+                re.companyID_id = get_user_company_id(request.user.pk)[0]
             else:
                 c = InvoiceSeries.objects.get(series__iexact=sIDReturn, isDeleted__exact=False,
                                               isCompleted__exact=False)
@@ -2653,14 +2858,20 @@ def commission_collection(request):
 
 
 def get_today_commission_by_company(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        col = Commission.objects.filter(datetime__icontains=datetime.today().date()
-                                        ).order_by('-datetime')
-
-    else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     col = Commission.objects.filter(datetime__icontains=datetime.today().date()
+    #                                     ).order_by('-datetime')
+    #
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #     col = Commission.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                     companyID_id=user.companyID_id).order_by('-datetime')
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
         col = Commission.objects.filter(datetime__icontains=datetime.today().date(),
-                                        companyID_id=user.companyID_id).order_by('-datetime')
+                                        companyID_id=company_name).order_by('-datetime')
+    else:
+        col = None
     c_list = []
     for c in col:
         data = {
@@ -2681,10 +2892,12 @@ def edit_commission(request):
         ColID = request.POST.get('CommissionID')
         Amount = request.POST.get('amountECommission')
         invoice = request.POST.get('invoiceECommission')
+        remarkECommission = request.POST.get('remarkECommission')
         try:
             ret = Commission.objects.get(pk=int(ColID))
             ret.amount = float(Amount)
             ret.actualBillNumber = invoice
+            ret.remark = remarkECommission
 
             ret.save()
 
@@ -2740,14 +2953,21 @@ def add_expense(request):
 
 
 def get_today_expense_by_company(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
-        col = Expense.objects.filter(datetime__icontains=datetime.today().date()
-                                     ).order_by('-datetime')
-
-    else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     col = Expense.objects.filter(datetime__icontains=datetime.today().date()
+    #                                  ).order_by('-datetime')
+    #
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #     col = Expense.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                  companyID_id=user.companyID_id).order_by('-datetime')
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
         col = Expense.objects.filter(datetime__icontains=datetime.today().date(),
-                                     companyID_id=user.companyID_id).order_by('-datetime')
+                                     companyID_id=company_name).order_by('-datetime')
+    else:
+        col = None
+
     c_list = []
     for c in col:
         data = {
@@ -2805,17 +3025,25 @@ def add_closing_balance_api(request):
         Balance = request.POST.get('Balance')
         try:
             try:
-                user = StaffUser.objects.get(userID_id=request.user.pk)
-                ex = OpeningAndClosingBalance.objects.get(balanceDate=datetime.today().date(),
-                                                          isBalanceCreditedOnNextDay=False,
-                                                          companyID_id=user.companyID_id)
-                if ex.closingAmount == 0.0:
-                    ex.closingAmount = float(Balance)
-                    ex.createdBy_id = user.pk
-                    ex.save()
-                    return JsonResponse({'message': 'success', })
-                else:
-                    return JsonResponse({'message': 'Already Added.'})
+                company_name, user = get_user_company_id(request.user.pk)
+                if company_name:
+                    try:
+                        users = StaffUser.objects.get(userID_id=request.user.pk)
+                        ex = OpeningAndClosingBalance.objects.get(balanceDate=datetime.today().date(),
+                                                                  isBalanceCreditedOnNextDay=False,
+                                                                  companyID_id=company_name)
+                        if ex.closingAmount == 0.0:
+                            ex.closingAmount = float(Balance)
+                            if users:
+                                ex.createdBy_id = user.pk
+                            else:
+                                pass
+                            ex.save()
+                            return JsonResponse({'message': 'success', })
+                        else:
+                            return JsonResponse({'message': 'Already Added.'})
+                    except:
+                        pass
 
             except:
 
@@ -2845,10 +3073,14 @@ def staff_advance_post(request):
             sa = StaffAdvanceToBuyer()
             sa.buyerID_id = int(partyName)
             sa.amount = float(partyAmount)
-            if not 'Both' in request.user.groups.values_list('name', flat=True):
-                user = StaffUser.objects.get(userID_id=request.user.pk)
-                sa.collectedBy_id = user.pk
-                sa.companyID_id = user.companyID_id
+            company_name, user = get_user_company_id(request.user.pk)
+            if company_name:
+                try:
+                    user = StaffUser.objects.get(userID_id=request.user.pk)
+                    sa.collectedBy_id = user.pk
+                except:
+                    pass
+                sa.companyID_id = company_name
                 sa.save()
             else:
                 sa.companyID_id = 1
@@ -2862,15 +3094,21 @@ def staff_advance_post(request):
 
 
 def get_today_staff_advance_by_company(request):
-    if 'Both' in request.user.groups.values_list('name', flat=True):
+    # if 'Both' in request.user.groups.values_list('name', flat=True):
+    #     col = StaffAdvanceToBuyer.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                              ).order_by('-datetime')
+    #
+    # else:
+    #     user = StaffUser.objects.get(userID_id=request.user.pk)
+    #     col = StaffAdvanceToBuyer.objects.filter(datetime__icontains=datetime.today().date(),
+    #                                              companyID_id=user.companyID_id,
+    #                                              ).order_by('-datetime')
+    company_name, user = get_user_company_id(request.user.pk)
+    if company_name:
         col = StaffAdvanceToBuyer.objects.filter(datetime__icontains=datetime.today().date(),
-                                                 ).order_by('-datetime')
-
+                                                 companyID_id=company_name).order_by('-datetime')
     else:
-        user = StaffUser.objects.get(userID_id=request.user.pk)
-        col = StaffAdvanceToBuyer.objects.filter(datetime__icontains=datetime.today().date(),
-                                                 companyID_id=user.companyID_id,
-                                                 ).order_by('-datetime')
+        col = None
     c_list = []
     for c in col:
         data = {
@@ -2935,4 +3173,3 @@ def edit_cash_invoice_report(request):
         'buyer': buyers,
     }
     return render(request, 'invoice/EditedCashInvoiceReport.html', context)
-
