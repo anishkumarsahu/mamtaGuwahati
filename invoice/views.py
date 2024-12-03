@@ -1694,20 +1694,20 @@ def generate_net_report_admin(request):
                                                  isDeleted__exact=False)
 
     skipped_list = []
-    # for invoice in invoiceByUser:
-    #     try:
-    #         last_sale = Sales.objects.filter(InvoiceSeriesID_id=invoice.pk, isDeleted__exact=False).order_by(
-    #             '-numberMain').first()
-    #
-    #         for i in InvoiceSerial.objects.filter(numberMain__gte=int(invoice.startsWith),
-    #                                               numberMain__lt=int(last_sale.numberMain)
-    #                                               ).order_by('-numberMain')[0:200]:
-    #             try:
-    #                 sale = Sales.objects.get(numberMain__exact=i.numberMain, InvoiceSeriesID_id=invoice.pk)
-    #             except:
-    #                 skipped_list.append(str(invoice.series) + str(i.number))
-    #     except:
-    #         pass
+    for invoice in invoiceByUser:
+        try:
+            last_sale = Sales.objects.filter(InvoiceSeriesID_id=invoice.pk, isDeleted__exact=False).order_by(
+                '-numberMain').first()
+
+            for i in InvoiceSerial.objects.filter(numberMain__gte=int(invoice.startsWith),
+                                                  numberMain__lt=int(last_sale.numberMain)
+                                                  ).order_by('-numberMain')[0:200]:
+                try:
+                    sale = Sales.objects.get(numberMain__exact=i.numberMain, InvoiceSeriesID_id=invoice.pk)
+                except:
+                    skipped_list.append(str(invoice.series) + str(i.number))
+        except:
+            pass
     returns = ReturnCollection.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                               companyID_id=int(companyID)).order_by('actualBillNumber')
 
@@ -1833,6 +1833,23 @@ def generate_net_report_accountant(request):
                                      InvoiceSeriesID__companyID_id=int(companyID)).order_by('InvoiceSeriesID',
                                                                                             'numberMain')
 
+    cash_total = 0.0
+    for cash in sales_cash:
+        cash_total = cash_total + cash.amount
+
+    card_total = 0.0
+    for card in sales_card:
+        card_total = card_total + card.amount
+
+    credit_total = 0.0
+    for credit in sales_credit:
+        credit_total = credit_total + credit.amount
+
+    mix_cash_total = 0.0
+    mix_card_total = 0.0
+    for mix in sales_mix:
+        mix_cash_total = mix_cash_total + mix.amount
+        mix_card_total = mix_card_total + mix.mixCardAmount
     company = Company.objects.get(pk=int(companyID))
     invoiceByUser = InvoiceSeries.objects.filter(companyID_id=company.pk, isCompleted__exact=False,
                                                  isDeleted__exact=False)
@@ -1853,18 +1870,29 @@ def generate_net_report_accountant(request):
             pass
     returns = ReturnCollection.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                               companyID_id=int(companyID)).order_by('actualBillNumber')
-
+    return_total = 0.0
+    for am in returns:
+        return_total = return_total + am.amount
     corrections = CorrectCollection.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                                    companyID_id=int(companyID)).order_by('actualBillNumber')
-
+    correct_total = 0.0
+    for ame in corrections:
+        correct_total = correct_total + ame.amount
     commissions = Commission.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                             companyID_id=int(companyID)).order_by('actualBillNumber')
-
+    commission_total = 0.0
+    for c in commissions:
+        commission_total = commission_total + c.amount
     expenses = Expense.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                       companyID_id=int(companyID)).order_by('datetime')
+    expense_total = 0.0
+    for e in expenses:
+        expense_total = expense_total + e.amount
     advance = StaffAdvanceToBuyer.objects.filter(datetime__icontains=day_string, isDeleted__exact=False,
                                                  companyID_id=int(companyID)).order_by('datetime')
-
+    advance_total = 0.0
+    for ad in advance:
+        advance_total = advance_total + ad.amount
     context = {
         'sales_cash': sales_cash,
         'sales_card': sales_card,
@@ -1878,6 +1906,17 @@ def generate_net_report_accountant(request):
         'commissions': commissions,
         'expenses': expenses,
         'advance': advance,
+        'cash_total': cash_total,
+        'card_total': card_total,
+        'credit_total': credit_total,
+        'correct_total': correct_total,
+        'return_total': return_total,
+        'commission_total': commission_total,
+        'mix_cash_total': mix_cash_total,
+        'mix_card_total': mix_card_total,
+        'mix_total': mix_cash_total + mix_card_total,
+        'expense_total': expense_total,
+        'advance_total': advance_total
 
     }
 
@@ -2584,11 +2623,17 @@ def generate_collection_report(request):
     date = datetime.today().date()
     col = MoneyCollection.objects.filter(datetime__icontains=datetime.today().date(), companyID_id=user.companyID_id,
                                          isAddedInSales__exact=True, isDeleted__exact=False, ).order_by('datetime')
+    col_total = 0.0
+    for c in col:
+        col_total = col_total + c.amount
 
     colCash = CashMoneyCollection.objects.filter(datetime__icontains=datetime.today().date(),
                                                  companyID_id=user.companyID_id,
                                                  isAddedInSales__exact=True, isDeleted__exact=False, ).order_by(
         'datetime')
+    col_total_cash = 0.0
+    for cash in colCash:
+        col_total_cash = col_total_cash + cash.amount
 
     context = {
 
@@ -2596,6 +2641,8 @@ def generate_collection_report(request):
         'user': user,
         'col': col,
         'colCash': colCash,
+        'col_total_cash': col_total_cash,
+        'col_total': col_total,
 
     }
 
@@ -2610,15 +2657,16 @@ def generate_collection_report(request):
 @check_group('Accountant')
 def collection_report_accountant(request):
     request.session['nav'] = '9'
-    users = StaffUser.objects.filter(isDeleted__exact=False, staffTypeID__name__icontains='sale').order_by('name')
+    company, user = get_user_company_id(request.user.pk)
+    users = StaffUser.objects.filter(isDeleted__exact=False, staffTypeID__name__icontains='sale', companyID_id__exact=company).order_by('name')
     date = datetime.today().now().strftime('%d/%m/%Y')
-    company = Company.objects.filter(isDeleted__exact=False)
+    company_names = Company.objects.filter(isDeleted__exact=False, id=company)
     buyers = Buyer.objects.filter(isDeleted__exact=False).order_by('name')
 
     context = {
         'users': users,
         'date': date,
-        'company': company,
+        'company': company_names,
         'buyer': buyers,
     }
     return render(request, 'invoice/CollectionReportAccountant.html', context)

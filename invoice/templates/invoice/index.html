@@ -813,6 +813,7 @@
                         <div class="col-xs-12" id="skipped">
 
                         </div>
+                        <p id="skipInvoiceLoading" style="display: none;">Loading Skipped invoices</p>
                     </div>
 
                 </div>
@@ -1908,16 +1909,28 @@
         return ((key >= 97 && key <= 122) || (key >= 65 && key <= 90) || key == 8 || key == 32);
     }
     function skippedInvoiceDetails() {
+
         $('#skipped').html('');
+        $('#skipInvoiceLoading').css('display','block');
+        debugger;
+
         $.ajax({
             type: 'get',
             url: "{% url 'invoiceApp:skipped_invoice' %}",
             success: function (response) {
-                for (i in response.data.skipped) {
+                if(response.data.skipped.length > 0){
+                    for (i in response.data.skipped) {
                     skip = '<span class="col-xs-3 label label-warning invoiceStyle" onclick="inputData(\'' + response.data.skipped[i].Serial + '\',' + response.data.skipped[i].SeriesID + ',' + response.data.skipped[i].MainNumber + ',\'' + response.data.skipped[i].MainSeries + '\')"><strong>' + response.data.skipped[i].Serial + ' </strong></span>'
 
                     $('#skipped').append(skip)
                 }
+                $('#skipInvoiceLoading').css('display','none')
+                }
+                else {
+                    $('#skipped').html('No skipped invoices.');
+                    $('#skipInvoiceLoading').css('display','none')
+                }
+
             },
             error: function () {
                 errMsg();

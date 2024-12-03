@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>A123DACN</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
     <style>
         @page {
             size: A5;
@@ -26,12 +25,20 @@
             columns: 7;
         }
 
-        table.table-bordered > thead > tr > th {
-            border: 1px solid grey !important;
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
         }
 
-        table.table-bordered > tbody > tr > td {
-            border: 1px solid grey !important;
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
         }
 
     </style>
@@ -253,7 +260,7 @@
             </tbody>
         </table>
     </section>
-  {% comment %}  <p style="font-size: 10px; margin: 2px;">Skipped Invoice Number </p>
+    <p style="font-size: 10px; margin: 2px;">Skipped Invoice Number </p>
     <section class="skip">
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -269,7 +276,7 @@
             {% endfor %}
             </tbody>
         </table>
-    </section>{% endcomment %}
+    </section>
 </div>
 </body>
 </html>

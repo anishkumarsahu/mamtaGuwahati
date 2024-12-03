@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>A123DACN</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
     <style>
         @page {
             size: A5;
@@ -26,12 +25,20 @@
             columns: 7;
         }
 
-        table.table-bordered > thead > tr > th {
-            border: 1px solid grey !important;
+         table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
         }
 
-        table.table-bordered > tbody > tr > td {
-            border: 1px solid grey !important;
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
         }
 
     </style>
@@ -40,10 +47,11 @@
 <div class="container">
     <div class="row">
         <span style="font-size: 10px;">Date: {{ date }}</span>
-        <span style="font-size: 9px;float: right"> Sales Report-({{ user.companyID.name }})</span>
+        <span style="font-size: 9px;float: right"> Sales Report-({{ user.companyID.name }}) - {{ user.name }}</span>
     </div>
 
-    <p style="font-size: 10px; margin: 2px;">Cash</p>
+    <p style="font-size: 10px; margin: 2px;">Cash<span
+            style="float: right">Total: ₹ <strong>{{ cash_total }}</strong></span></p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -64,7 +72,8 @@
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Card</p>
+    <p style="font-size: 10px; margin: 2px;">Card<span
+            style="float: right">Total: ₹ <strong>{{ card_total }}</strong></span></p>
     <section id="card">
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -110,7 +119,9 @@
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Mix </p>
+     <p style="font-size: 10px; margin: 2px;">Mix<span style="float: right">Cash: ₹ <strong>{{ mix_cash_total }}</strong></span><span
+            style="float: right">Card: ₹ <strong>{{ mix_card_total }}</strong></span><span style="float: right">Total: ₹ <strong>{{ mix_total }}</strong></span>
+    </p>
     <section id="Mix">
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -135,7 +146,8 @@
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Returns</p>
+    <p style="font-size: 10px; margin: 2px;">Returns <span
+            style="float: right">Total: ₹ <strong> -{{ return_total }}</strong></span></p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -154,7 +166,8 @@
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Corrections</p>
+ <p style="font-size: 10px; margin: 2px;">Corrections <span
+            style="float: right">Total: ₹ <strong> {{ correct_total }}</strong></span></p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -173,7 +186,8 @@
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Commission </p>
+    <p style="font-size: 10px; margin: 2px;">Commission <span
+            style="float: right">Total: ₹ <strong> -{{ commission_total }}</strong></span></p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -195,7 +209,8 @@
             </tbody>
         </table>
     </section>
-    <p style="font-size: 10px; margin: 2px;">Expenses</p>
+     <p style="font-size: 10px; margin: 2px;">Expenses <span
+            style="float: right">Total: ₹ <strong> {{ expense_total }}</strong></span></p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
@@ -216,7 +231,8 @@
         </table>
     </section>
 
- <p style="font-size: 10px; margin: 2px;">Staff Advance </p>
+ <p style="font-size: 10px; margin: 2px;">Staff Advance <span
+            style="float: right">Total: ₹ <strong> {{ advance_total }}</strong></span></p>
     <section>
         <table class="table table-bordered" style="font-size: 9px;">
             <thead>
