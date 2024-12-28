@@ -1044,7 +1044,7 @@ def index(request):
 
 
 def generate_serial_invoice_number(request):
-    for i in range(1, 10000):
+    for i in range(10000, 11000):
         num = str("{:05}".format(i))
         try:
             InvoiceSerial.objects.get(serials__exact=num)
@@ -2986,12 +2986,23 @@ def add_expense(request):
             ex = Expense()
             ex.remark = exRemark
             ex.amount = float(exAmount)
-            try:
-                user = StaffUser.objects.get(userID_id=request.user.pk)
-                ex.createdBy_id = user.pk
+            company_name, user = get_user_company_id(request.user.pk)
+            if company_name:
+                try:
+                    user = StaffUser.objects.get(userID_id=request.user.pk)
+                    ex.createdBy_id = user.pk
+                except:
+                    pass
                 ex.companyID_id = user.companyID_id
-            except:
+            else:
                 ex.companyID_id = 1
+
+            # try:
+            #     user = StaffUser.objects.get(userID_id=request.user.pk)
+            #     ex.createdBy_id = user.pk
+            #     ex.companyID_id = user.companyID_id
+            # except:
+            #     ex.companyID_id = 1
             ex.save()
             enable_opening_balance(request)
 
