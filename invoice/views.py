@@ -1044,7 +1044,7 @@ def index(request):
 
 
 def generate_serial_invoice_number(request):
-    for i in range(10000, 11000):
+    for i in range(11000, 13000):
         num = str("{:05}".format(i))
         try:
             InvoiceSerial.objects.get(serials__exact=num)
@@ -2165,7 +2165,7 @@ def search_invoice(request):
         except:
             try:
                 invoiceByUser = InvoiceSeries.objects.get(pk=int(sID))
-                invoice = InvoiceSerial.objects.get(numberMain__gte=int(invoiceByUser.startsWith), numberMain__lt=10000,
+                invoice = InvoiceSerial.objects.get(numberMain__gte=int(invoiceByUser.startsWith), numberMain__lt=30000,
                                                     numberMain__exact=int(searchID))
                 dataNew = {
                     'Serial': str(invoiceByUser.series) + str(invoice.number),
